@@ -14,25 +14,17 @@
  * limitations under the License.
  */
 
-package errutil_test
+package toml
 
 import (
-	"errors"
-	"testing"
-
-	"github.com/go-spring/spring-boost/assert"
-	"github.com/go-spring/spring-boost/errutil"
+	"github.com/pelletier/go-toml"
 )
 
-func TestErrorWithFileLine(t *testing.T) {
-
-	err := errutil.WithFileLine(errors.New("this is an error"), 0)
-	assert.Error(t, err, ".*:29: this is an error")
-
-	fnError := func(e error) error {
-		return errutil.WithFileLine(e, 1)
+// Read 将 toml 格式的字节数组解析成 map 数据。
+func Read(b []byte) (map[string]interface{}, error) {
+	tree, err := toml.LoadBytes(b)
+	if err != nil {
+		return nil, err
 	}
-
-	err = fnError(errors.New("this is an error"))
-	assert.Error(t, err, ".*:36: this is an error")
+	return tree.ToMap(), nil
 }

@@ -14,23 +14,18 @@
  * limitations under the License.
  */
 
-package errutil
+package yaml
 
 import (
-	"fmt"
-	"runtime"
+	"gopkg.in/yaml.v2"
 )
 
-// ToString 返回 error 的字符串。
-func ToString(err error) string {
-	if err == nil {
-		return "<nil>"
+// Read 将 yaml 格式的字节数组解析成 map 数据。
+func Read(b []byte) (map[string]interface{}, error) {
+	m := make(map[string]interface{})
+	err := yaml.Unmarshal(b, &m)
+	if err != nil {
+		return nil, err
 	}
-	return err.Error()
-}
-
-// WithFileLine 返回错误发生的文件行号，skip 是相对于当前函数的深度。
-func WithFileLine(err error, skip int) error {
-	_, file, line, _ := runtime.Caller(skip + 1)
-	return fmt.Errorf("%s:%d: %w", file, line, err)
+	return m, nil
 }
