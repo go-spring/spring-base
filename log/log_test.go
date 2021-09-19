@@ -20,7 +20,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"runtime"
 	"strings"
 	"testing"
 
@@ -79,15 +78,13 @@ func TestDefault(t *testing.T) {
 
 	log.Fatal("a", "=", "1")
 	log.Fatalf("a=%d", 1)
-
-	log.Recovery(errors.New("panic:3"))
 }
 
 type traceIDKeyType int
 
 var traceIDKey traceIDKeyType
 
-func myOutput(skip int, level log.Level, e *log.Entry) {
+func myOutput(level log.Level, e *log.Entry) {
 
 	msg := e.GetMsg()
 	tag := e.GetTag()
@@ -106,8 +103,9 @@ func myOutput(skip int, level log.Level, e *log.Entry) {
 		return "trace_id:" + v.(string)
 	}(e.GetCtx())
 
+	line := e.GetLine()
+	file := e.GetFile()
 	strLevel := strings.ToUpper(level.String())
-	_, file, line, _ := runtime.Caller(skip + 1)
 	fmt.Printf("[%s] %s:%d %s %s%s\n", strLevel, file, line, strCtx, tag, msg)
 }
 
@@ -176,7 +174,4 @@ func TestEntry(t *testing.T) {
 	logger.Ctx(ctx).Panicf("level:%s", "panic")
 	logger.Ctx(ctx).Fatal("level:", "fatal")
 	logger.Ctx(ctx).Fatalf("level:%s", "fatal")
-
-	logger.Recovery(errors.New("panic:3"))
-	logger.Ctx(ctx).Recovery(errors.New("panic:3"))
 }

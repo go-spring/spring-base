@@ -23,16 +23,18 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/go-spring/spring-boost/console"
 )
 
 const (
-	TraceLevel = Level(0)
-	DebugLevel = Level(1)
-	InfoLevel  = Level(2)
-	WarnLevel  = Level(3)
-	ErrorLevel = Level(4)
-	PanicLevel = Level(5)
-	FatalLevel = Level(6)
+	TraceLevel = Level(iota)
+	DebugLevel
+	InfoLevel
+	WarnLevel
+	ErrorLevel
+	PanicLevel
+	FatalLevel
 )
 
 // Level 日志输出级别。
@@ -72,21 +74,31 @@ func Tag(tag string) Entry {
 
 // Entry 打包需要记录的日志信息。
 type Entry struct {
-	ctx context.Context
-	tag string
-	msg string
+	ctx  context.Context
+	tag  string
+	msg  string
+	file string
+	line int
 }
 
-func (e *Entry) GetMsg() string {
-	return e.msg
+func (e *Entry) GetCtx() context.Context {
+	return e.ctx
 }
 
 func (e *Entry) GetTag() string {
 	return e.tag
 }
 
-func (e *Entry) GetCtx() context.Context {
-	return e.ctx
+func (e *Entry) GetMsg() string {
+	return e.msg
+}
+
+func (e *Entry) GetFile() string {
+	return e.file
+}
+
+func (e *Entry) GetLine() int {
+	return e.line
 }
 
 func (e Entry) Tag(tag string) Entry {
@@ -108,21 +120,20 @@ func (e Entry) format(format string, a ...interface{}) *Entry {
 	return &e
 }
 
-// Output 定制日志的输出格式，skip 是相对于当前函数的调用深度。
-type Output func(skip int, level Level, e *Entry)
+// Output 定制日志的输出格式。
+type Output func(level Level, e *Entry)
 
 // Console 将日志输出到控制台。
-func Console(skip int, level Level, e *Entry) {
-
+func Console(level Level, e *Entry) {
 	strLevel := strings.ToUpper(level.String())
 	if level >= ErrorLevel {
-		strLevel = fmt.Sprintf("\x1b[31m%s\x1b[0m", strLevel) // RED
+		strLevel = console.RED.Sprint(strLevel)
 	} else if level == WarnLevel {
-		strLevel = fmt.Sprintf("\x1b[33m%s\x1b[0m", strLevel) // YELLOW
+		strLevel = console.YELLOW.Sprint(strLevel)
+	} else if level == TraceLevel {
+		strLevel = console.GREEN.Sprint(strLevel)
 	}
-
-	_, file, line, _ := runtime.Caller(skip + 1)
-	_, _ = fmt.Printf("[%s] %s:%d %s\n", strLevel, file, line, e.GetMsg())
+	_, _ = fmt.Printf("[%s] %s:%d %s\n", strLevel, e.file, e.line, e.msg)
 }
 
 var config = struct {
@@ -146,7 +157,8 @@ func outputf(level Level, e Entry, format string, args ...interface{}) {
 			args = fn()
 		}
 	}
-	config.output(2, level, e.format(format, args...))
+	_, e.file, e.line, _ = runtime.Caller(2)
+	config.output(level, e.format(format, args...))
 }
 
 // Reset 重新设置输出级别及输出格式。
@@ -239,13 +251,6 @@ func (e Entry) Fatal(args ...interface{}) {
 // Fatalf 输出 FATAL 级别的日志。
 func (e Entry) Fatalf(format string, args ...interface{}) {
 	outputf(FatalLevel, e, format, args...)
-}
-
-// Recovery 记录 recover 事件。
-func (e Entry) Recovery(i interface{}) {
-	if i != nil {
-		config.output(1, PanicLevel, e.format("", i))
-	}
 }
 
 // EnableTrace 是否允许输出 TRACE 级别的日志。
@@ -351,11 +356,4 @@ func Fatal(args ...interface{}) {
 // Fatalf 输出 FATAL 级别的日志。
 func Fatalf(format string, args ...interface{}) {
 	outputf(FatalLevel, empty, format, args...)
-}
-
-// Recovery 记录 recover 事件。
-func Recovery(i interface{}) {
-	if i != nil {
-		config.output(1, PanicLevel, empty.format("", i))
-	}
 }
