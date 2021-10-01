@@ -21,7 +21,7 @@ package replayer
 import (
 	"context"
 
-	"github.com/go-spring/spring-boost/recorder"
+	"github.com/go-spring/spring-base/recorder"
 )
 
 // ReplayMode 返回是否是回放模式。

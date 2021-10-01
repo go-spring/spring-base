@@ -1,4 +1,4 @@
-module github.com/go-spring/spring-boost
+module github.com/go-spring/spring-base
 
 go 1.14
 

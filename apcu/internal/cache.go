@@ -24,8 +24,15 @@ import (
 	"sync"
 	"time"
 
-	"github.com/go-spring/spring-boost/json"
+	"github.com/go-spring/spring-base/json"
 )
+
+type APCU interface {
+	Load(ctx context.Context, key string, out interface{}) (ok bool, err error)
+	Store(key string, val interface{}, opts ...StoreOption)
+	Range(f func(key, value interface{}) bool)
+	Delete(key string)
+}
 
 type cacheItem struct {
 	source   interface{}

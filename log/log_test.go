@@ -23,7 +23,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/go-spring/spring-boost/log"
+	"github.com/go-spring/spring-base/log"
 )
 
 func TestDefault(t *testing.T) {

@@ -17,9 +17,9 @@
 package conf
 
 import (
-	"github.com/go-spring/spring-boost/conf/prop"
-	"github.com/go-spring/spring-boost/conf/toml"
-	"github.com/go-spring/spring-boost/conf/yaml"
+	"github.com/go-spring/spring-base/conf/prop"
+	"github.com/go-spring/spring-base/conf/toml"
+	"github.com/go-spring/spring-base/conf/yaml"
 )
 
 func init() {
