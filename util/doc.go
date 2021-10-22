@@ -14,4 +14,5 @@
  * limitations under the License.
  */
 
-package gof23
+// Package util 提供了一些常用的辅助函数。
+package util

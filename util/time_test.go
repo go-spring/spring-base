@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package util
+package util_test
 
 import (
-	"errors"
+	"context"
+	"testing"
+	"time"
+
+	"github.com/go-spring/spring-base/assert"
+	"github.com/go-spring/spring-base/util"
 )
 
-// UnsupportedMethod 如果某个方法禁止被调用则可以抛出此错误。
-var UnsupportedMethod = errors.New("unsupported method")
-
-// UnimplementedMethod 如果某个方法未实现则可以抛出此错误。
-var UnimplementedMethod = errors.New("unimplemented method")
+func TestNow(t *testing.T) {
+	assert.True(t, time.Now().Sub(util.Now(nil)).Milliseconds() < 1)
+	assert.True(t, time.Now().Sub(util.Now(context.TODO())).Milliseconds() < 1)
+	ctx := util.MockNow(context.TODO(), time.Now().Add(-60*time.Second))
+	assert.True(t, time.Now().Sub(util.Now(ctx).Add(60*time.Second)).Milliseconds() < 1)
+}

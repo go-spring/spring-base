@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// Package log 重新定义了标准日志接口，可以灵活适配各种日志框架。
+// Package log 重新定义标准日志接口，可以灵活适配各种日志框架。
 package log
 
 import (
@@ -24,7 +24,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/go-spring/spring-base/console"
+	"github.com/go-spring/spring-base/color"
 )
 
 const (
@@ -72,7 +72,7 @@ func Tag(tag string) Entry {
 	return empty.Tag(tag)
 }
 
-// Entry 打包需要记录的日志信息。
+// Entry 打包日志信息。
 type Entry struct {
 	ctx  context.Context
 	tag  string
@@ -120,18 +120,18 @@ func (e Entry) format(format string, a ...interface{}) *Entry {
 	return &e
 }
 
-// Output 定制日志的输出格式。
+// Output 自定义日志的输出格式。
 type Output func(level Level, e *Entry)
 
 // Console 将日志输出到控制台。
 func Console(level Level, e *Entry) {
 	strLevel := strings.ToUpper(level.String())
 	if level >= ErrorLevel {
-		strLevel = console.Red.Sprint(strLevel)
+		strLevel = color.Red.Sprint(strLevel)
 	} else if level == WarnLevel {
-		strLevel = console.Yellow.Sprint(strLevel)
+		strLevel = color.Yellow.Sprint(strLevel)
 	} else if level == TraceLevel {
-		strLevel = console.Green.Sprint(strLevel)
+		strLevel = color.Green.Sprint(strLevel)
 	}
 	_, _ = fmt.Printf("[%s] %s:%d %s\n", strLevel, e.file, e.line, e.msg)
 }
@@ -145,8 +145,27 @@ var config = struct {
 	output: Console,
 }
 
-// T 将可变参数转换成切片。
-func T(a ...interface{}) []interface{} { return a }
+// Reset 恢复默认的日志输出配置。
+func Reset() {
+	config.mutex.Lock()
+	defer config.mutex.Unlock()
+	config.level = InfoLevel
+	config.output = Console
+}
+
+// SetLevel 设置日志的输出级别。
+func SetLevel(level Level) {
+	config.mutex.Lock()
+	defer config.mutex.Unlock()
+	config.level = level
+}
+
+// SetOutput 设置日志的输出格式。
+func SetOutput(output Output) {
+	config.mutex.Lock()
+	defer config.mutex.Unlock()
+	config.output = output
+}
 
 func outputf(level Level, e Entry, format string, args ...interface{}) {
 	if config.level > level {
@@ -161,26 +180,9 @@ func outputf(level Level, e Entry, format string, args ...interface{}) {
 	config.output(level, e.format(format, args...))
 }
 
-// Reset 重新设置输出级别及输出格式。
-func Reset() {
-	config.mutex.Lock()
-	defer config.mutex.Unlock()
-	config.level = InfoLevel
-	config.output = Console
-}
-
-// SetLevel 设置日志输出的级别。
-func SetLevel(level Level) {
-	config.mutex.Lock()
-	defer config.mutex.Unlock()
-	config.level = level
-}
-
-// SetOutput 设置日志的输出格式。
-func SetOutput(output Output) {
-	config.mutex.Lock()
-	defer config.mutex.Unlock()
-	config.output = output
+// T 将可变参数转换成切片形式。
+func T(a ...interface{}) []interface{} {
+	return a
 }
 
 // Trace 输出 TRACE 级别的日志。

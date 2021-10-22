@@ -14,9 +14,17 @@
  * limitations under the License.
  */
 
-package apollo
+package code
 
-// Get 获取缓存值，底层使用 Properties 实现，实时更新。
-func Get(key string, out interface{}) error {
-	return nil
+import (
+	"fmt"
+	"path/filepath"
+	"runtime"
+)
+
+// Line 获取当前调用点的文件信息，希望未来可以实现编译期计算。
+func Line() string {
+	_, file, line, _ := runtime.Caller(1)
+	_, file = filepath.Split(file)
+	return fmt.Sprintf("%s:%d", file, line)
 }

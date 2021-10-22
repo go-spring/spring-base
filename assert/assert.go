@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-// Package assert 提供了一些断言函数。
+// Package assert 提供了一些常用的断言函数。
 package assert
 
 import (
@@ -77,17 +77,17 @@ func NotNil(t *testing.T, got interface{}) {
 	}
 }
 
-// Equal asserts that got and expect are equal as defined by reflect.DeepEqual.
+// Equal asserts that got and expect are equal.
 func Equal(t *testing.T, got interface{}, expect interface{}) {
 	if !reflect.DeepEqual(got, expect) {
-		fail(t, 1, "got %v but expect %v", got, expect)
+		fail(t, 1, "got (%T) %v but expect (%T)  %v", got, got, expect, expect)
 	}
 }
 
-// NotEqual asserts that got and expect are not equal as defined by reflect.DeepEqual.
+// NotEqual asserts that got and expect are not equal.
 func NotEqual(t *testing.T, got interface{}, expect interface{}) {
 	if reflect.DeepEqual(got, expect) {
-		fail(t, 1, "got %v but expect %v", got, expect)
+		fail(t, 1, "got (%T) %v but expect (%T) %v", got, got, expect, expect)
 	}
 }
 

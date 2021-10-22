@@ -14,27 +14,27 @@
  * limitations under the License.
  */
 
-package util
+package util_test
 
 import (
-	"container/list"
+	"testing"
+
+	"github.com/go-spring/spring-base/assert"
+	"github.com/go-spring/spring-base/code"
+	"github.com/go-spring/spring-base/util"
 )
 
-// NewList 使用输入的元素创建列表。
-func NewList(v ...interface{}) *list.List {
-	l := list.New()
-	for _, val := range v {
-		l.PushBack(val)
-	}
-	return l
-}
+func TestError(t *testing.T) {
 
-// SearchList 在列表中查询指定元素，存在则返回列表项指针，不存在返回 nil。
-func SearchList(l *list.List, v interface{}) *list.Element {
-	for e := l.Front(); e != nil; e = e.Next() {
-		if e.Value == v {
-			return e
-		}
-	}
-	return nil
+	e0 := util.Error(code.Line(), "error")
+	assert.Error(t, e0, "error_test.go:29 error")
+
+	e1 := util.Errorf(code.Line(), "error: %d", 0)
+	assert.Error(t, e1, "error_test.go:32 error: 0")
+
+	e2 := util.Wrap(e0, code.Line(), "error")
+	assert.Error(t, e2, "error_test.go:35 error\nerror_test.go:29 error")
+
+	e3 := util.Wrapf(e1, code.Line(), "error: %d", 1)
+	assert.Error(t, e3, "error_test.go:38 error: 1\nerror_test.go:32 error: 0")
 }

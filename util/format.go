@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package toml
+package util
 
 import (
-	"github.com/pelletier/go-toml"
+	"time"
 )
 
-// Read 将 toml 格式的字节数组解析成 map 数据。
-func Read(b []byte) (map[string]interface{}, error) {
-	tree, err := toml.LoadBytes(b)
-	if err != nil {
-		return nil, err
-	}
-	return tree.ToMap(), nil
+// Format time 支持 YY-MM-DD 格式化会不会更好呢？
+func Format(t time.Time, layout string) string {
+	return ""
 }
