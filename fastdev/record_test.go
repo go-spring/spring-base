@@ -1,5 +1,3 @@
-// +build !gs_replayer
-
 /*
  * Copyright 2012-2019 the original author or authors.
  *
@@ -16,21 +14,41 @@
  * limitations under the License.
  */
 
-package replayer
+package fastdev
 
 import (
 	"context"
+	"testing"
 
-	"github.com/go-spring/spring-base/recorder"
-	"github.com/go-spring/spring-base/util"
+	"github.com/go-spring/spring-base/assert"
+	"github.com/go-spring/spring-base/knife"
 )
 
-// ReplayMode 返回是否是回放模式。
-func ReplayMode() bool {
-	return false
-}
+func TestRecordAction(t *testing.T) {
 
-// Replay 根据 action 传入的匹配信息返回对应的数据。
-func Replay(ctx context.Context, action *recorder.Action) (ok bool, err error) {
-	panic(util.UnsupportedMethod)
+	SetRecordMode(true)
+	defer func() {
+		SetRecordMode(false)
+	}()
+
+	ctx := knife.New(context.Background())
+	err := knife.Set(ctx, RecordSessionIDKey, NewSessionID())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	RecordAction(ctx, &Action{
+		Protocol: REDIS,
+		Request:  "GET a",
+		Response: "1",
+	})
+
+	session := RecordInbound(ctx, &Action{
+		Protocol: HTTP,
+		Request:  "GET ...",
+		Response: "... 200 ...",
+	})
+
+	_, ok := recorder.data.Load(session.Session)
+	assert.False(t, ok)
 }
