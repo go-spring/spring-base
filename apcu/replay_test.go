@@ -14,60 +14,53 @@
  * limitations under the License.
  */
 
-package fastdev
+package apcu_test
 
 import (
 	"context"
 	"testing"
 
+	"github.com/go-spring/spring-base/apcu"
 	"github.com/go-spring/spring-base/assert"
+	"github.com/go-spring/spring-base/fastdev"
 	"github.com/go-spring/spring-base/knife"
 )
 
-func TestReplayAction(t *testing.T) {
+func TestReplay(t *testing.T) {
 
-	sessionID := NewSessionID()
-
-	SetReplayMode(true, false)
+	fastdev.SetReplayMode(true, false)
 	defer func() {
-		SetReplayMode(false, false)
+		fastdev.SetReplayMode(false, false)
 	}()
 
-	session := &Session{
-		Session: sessionID,
-		Inbound: &Action{
-			Protocol: HTTP,
-			Request:  "GET ...",
-			Response: "... 200 ...",
-		},
-		Actions: []*Action{
-			{
-				Protocol: REDIS,
-				Request:  "SET a 1",
-				Response: "OK",
-			}, {
-				Protocol: REDIS,
-				Request:  "GET a",
-				Response: "1",
-			},
-		},
-	}
-
-	Store(session)
-
+	sessionID := "fdcc085347f540ed94facbab14ae3cc4"
 	ctx := knife.New(context.Background())
-	err := knife.Set(ctx, ReplaySessionIDKey, sessionID)
-	if err != nil {
-		t.Fatal(err)
+	err := knife.Set(ctx, fastdev.ReplaySessionIDKey, sessionID)
+	assert.Nil(t, err)
+
+	type dataType struct {
+		Data string `json:"a"`
 	}
 
-	action := &Action{
-		Protocol: REDIS,
-		Request:  "GET a",
-	}
+	var b *dataType
+	ok, err := apcu.Load(ctx, "a", &b)
+	assert.Nil(t, err)
+	assert.False(t, ok)
 
-	ok, err := ReplayAction(ctx, action)
+	apcu.Store(ctx, "a", &dataType{
+		Data: "success",
+	})
+
+	ok, err = apcu.Load(ctx, "a", &b)
 	assert.Nil(t, err)
 	assert.True(t, ok)
-	assert.Equal(t, action.Response, "1")
+
+	m := make(map[string]interface{})
+	apcu.Range(func(key, value interface{}) bool {
+		m[key.(string)] = value
+		return true
+	})
+	assert.Equal(t, m[sessionID+"a"], &dataType{
+		Data: "success",
+	})
 }

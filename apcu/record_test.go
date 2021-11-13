@@ -36,32 +36,41 @@ func TestRecord(t *testing.T) {
 	sessionID := fastdev.NewSessionID()
 	ctx := knife.New(context.Background())
 	err := knife.Set(ctx, fastdev.RecordSessionIDKey, sessionID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.Nil(t, err)
+
+	defer func() {
+		apcu.Delete(ctx, "a")
+	}()
 
 	type dataType struct {
 		Data string `json:"a"`
 	}
 
-	var a = dataType{
-		Data: "success",
-	}
-
-	apcu.Store("a", a)
-
-	var b dataType
+	var b *dataType
 	ok, err := apcu.Load(ctx, "a", &b)
-	if err != nil {
-		t.Fatal(err)
-	}
-	assert.True(t, ok)
+	assert.Nil(t, err)
+	assert.False(t, ok)
 
-	session := fastdev.RecordInbound(ctx, &fastdev.Action{
-		Protocol: fastdev.HTTP,
-		Request:  "GET ...",
-		Response: "... 200 ...",
+	apcu.Store(ctx, "a", &dataType{
+		Data: "success",
 	})
 
-	assert.Equal(t, session.Session, sessionID)
+	m := make(map[string]interface{})
+	apcu.Range(func(key, value interface{}) bool {
+		m[key.(string)] = value
+		return true
+	})
+	assert.Equal(t, m["a"], &dataType{
+		Data: "success",
+	})
+
+	ok, err = apcu.Load(ctx, "a", &b)
+	assert.Nil(t, err)
+	assert.True(t, ok)
+
+	ok, err = apcu.Load(ctx, "a", &b)
+	assert.Nil(t, err)
+	assert.True(t, ok)
+
+	fastdev.RecordInbound(ctx, &fastdev.Action{})
 }
