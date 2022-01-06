@@ -89,17 +89,17 @@ func TestToTime(t *testing.T) {
 
 		testcases := []struct {
 			value  int64
-			unit   time.Duration
+			unit   string
 			expect time.Time
 		}{
-			{1, time.Nanosecond, time.Unix(0, 1)},
-			{1, time.Millisecond, time.Unix(0, 1*1e6)},
-			{1, time.Second, time.Unix(1, 0)},
-			{1, time.Hour, time.Unix(0, 0).Add(time.Hour)},
+			{1, cast.Nanosecond, time.Unix(0, 1)},
+			{1, cast.Millisecond, time.Unix(0, 1*1e6)},
+			{1, cast.Second, time.Unix(1, 0)},
+			{1, cast.Hour, time.Unix(0, 0).Add(time.Hour)},
 		}
 
 		for i, testcase := range testcases {
-			s := cast.ToTime(testcase.value, cast.TimeArg{Unit: testcase.unit})
+			s := cast.ToTime(testcase.value, testcase.unit)
 			assert.Equal(t, s, testcase.expect, fmt.Sprintf("index %d", i))
 		}
 	})
@@ -116,10 +116,20 @@ func TestToTime(t *testing.T) {
 				"2006-01-02 15:04:05.000000000 -0700",
 				time.Unix(0, 1),
 			},
+			{
+				"1s",
+				"",
+				time.Unix(1, 0),
+			},
+			{
+				"1h1m1s",
+				"",
+				time.Unix(3661, 0),
+			},
 		}
 
 		for i, testcase := range testcases {
-			s := cast.ToTime(testcase.value, cast.TimeArg{Format: testcase.format})
+			s := cast.ToTime(testcase.value, testcase.format)
 			assert.Equal(t, s, testcase.expect, fmt.Sprintf("index %d", i))
 		}
 	})
@@ -265,7 +275,7 @@ func BenchmarkToTime(b *testing.B) {
 		})
 		b.Run("go-spring", func(b *testing.B) {
 			for i := 0; i < b.N; i++ {
-				_, err := cast.ToTimeE(v, cast.TimeArg{Format: format})
+				_, err := cast.ToTimeE(v, format)
 				if err != nil {
 					b.Fatal(err)
 				}

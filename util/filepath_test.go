@@ -17,17 +17,20 @@
 package util_test
 
 import (
-	"context"
 	"testing"
-	"time"
 
 	"github.com/go-spring/spring-base/assert"
+	"github.com/go-spring/spring-base/code"
 	"github.com/go-spring/spring-base/util"
 )
 
-func TestNow(t *testing.T) {
-	assert.True(t, time.Now().Sub(util.Now(nil)).Milliseconds() < 1)
-	assert.True(t, time.Now().Sub(util.Now(context.TODO())).Milliseconds() < 1)
-	ctx := util.MockNow(context.TODO(), time.Now().Add(-60*time.Second))
-	assert.True(t, time.Now().Sub(util.Now(ctx).Add(60*time.Second)).Milliseconds() < 1)
+func TestContract(t *testing.T) {
+	file := code.File()
+	assert.Equal(t, util.Contract(file, -1), file)
+	assert.Equal(t, util.Contract(file, 0), file)
+	assert.Equal(t, util.Contract(file, 1), file)
+	assert.Equal(t, util.Contract(file, 3), file)
+	assert.Equal(t, util.Contract(file, 4), "...o")
+	assert.Equal(t, util.Contract(file, 5), "...go")
+	assert.Equal(t, util.Contract(file, 10000), file)
 }

@@ -14,27 +14,31 @@
  * limitations under the License.
  */
 
-package util_test
+package util
 
 import (
-	"testing"
-
-	"github.com/go-spring/spring-base/assert"
-	"github.com/go-spring/spring-base/code"
-	"github.com/go-spring/spring-base/util"
+	"os"
 )
 
-func TestError(t *testing.T) {
+// ReadDirNames reads the directory named by dirname and returns
+// an unsorted list of directory entries.
+func ReadDirNames(dirname string) ([]string, error) {
+	f, err := os.Open(dirname)
+	if err != nil {
+		return nil, err
+	}
+	names, err := f.Readdirnames(-1)
+	f.Close()
+	if err != nil {
+		return nil, err
+	}
+	return names, nil
+}
 
-	e0 := util.Error(code.FileLine(), "error")
-	assert.Error(t, e0, "error_test.go:29 error")
-
-	e1 := util.Errorf(code.FileLine(), "error: %d", 0)
-	assert.Error(t, e1, "error_test.go:32 error: 0")
-
-	e2 := util.Wrap(e0, code.FileLine(), "error")
-	assert.Error(t, e2, "error_test.go:35 error\nerror_test.go:29 error")
-
-	e3 := util.Wrapf(e1, code.FileLine(), "error: %d", 1)
-	assert.Error(t, e3, "error_test.go:38 error: 1\nerror_test.go:32 error: 0")
+// Contract 压缩 filename 的长度，超出的部分使用 ... 代替。
+func Contract(filename string, maxLength int) string {
+	if n := len(filename); maxLength > 3 && n > maxLength-3 {
+		return "..." + filename[n-maxLength+3:]
+	}
+	return filename
 }

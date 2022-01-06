@@ -30,14 +30,14 @@ var converters = map[reflect.Type]interface{}{}
 
 func init() {
 
-	// time.Time 转换函数，支持非常多的日期格式，参见 cast.StringToDate()。
+	// time.Time 转换函数，支持时间戳格式，支持日期字符串(日期字符串>>日期字符串的格式)。
 	Convert(func(s string) (time.Time, error) {
 		format := "2006-01-02 15:04:05 -0700"
-		if ss := strings.Split(s, "||"); len(ss) == 2 {
-			format = ss[1]
-			s = ss[0]
+		if ss := strings.Split(s, ">>"); len(ss) == 2 {
+			format = strings.TrimSpace(ss[1])
+			s = strings.TrimSpace(ss[0])
 		}
-		return cast.ToTimeE(s, cast.TimeArg{Format: format})
+		return cast.ToTimeE(s, format)
 	})
 
 	// time.Duration 转换函数，支持 "ns", "us" (or "µs"), "ms", "s", "m", "h" 等。
