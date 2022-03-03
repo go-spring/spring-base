@@ -275,7 +275,9 @@ func (p *Properties) Set(key string, val interface{}) error {
 			p.m[key] = ""
 			return p.checkKey(key, true)
 		}
-		if util.IsPrimitiveValueType(v.Type().Elem()) {
+		vItem0 := v.Index(0).Interface()
+		tItem0 := reflect.TypeOf(vItem0)
+		if util.IsPrimitiveValueType(tItem0) {
 			ss := cast.ToStringSlice(val)
 			err := p.Set(key, strings.Join(ss, ","))
 			if err != nil {
