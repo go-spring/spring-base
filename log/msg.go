@@ -17,118 +17,76 @@
 package log
 
 import (
-	"context"
-	"time"
+	"encoding/json"
+	"fmt"
+
+	"github.com/go-spring/spring-base/atomic"
 )
 
-// Message 定义日志消息。
-type Message struct {
-	level Level
-	time  time.Time
-	ctx   context.Context
-	tag   string
-	file  string
-	line  int
-	args  []interface{}
-	errno Errno
+// Message is an interface that its implementations can be converted to text.
+type Message interface {
+	Text() string
 }
 
-func (msg *Message) Level() Level {
-	return msg.level
+// OptimizedMessage uses atomic.Value to store formatted text. Tests show that
+// you can use OptimizedMessage to improve the performance of the Text method
+// when you call the Text method more than once.
+type OptimizedMessage struct {
+	text atomic.Value
 }
 
-func (msg *Message) Tag() string {
-	return msg.tag
-}
-
-func (msg *Message) File() string {
-	return msg.file
-}
-
-func (msg *Message) Line() int {
-	return msg.line
-}
-
-func (msg *Message) Time() time.Time {
-	return msg.time
-}
-
-func (msg *Message) Args() []interface{} {
-	return msg.args
-}
-
-func (msg *Message) Errno() Errno {
-	return msg.errno
-}
-
-func (msg *Message) Context() context.Context {
-	return msg.ctx
-}
-
-type MessageBuilder struct {
-	Level Level
-	Time  time.Time
-	Ctx   context.Context
-	Tag   string
-	File  string
-	Line  int
-	Args  []interface{}
-	Errno Errno
-}
-
-func NewMessageBuilder() *MessageBuilder {
-	return &MessageBuilder{}
-}
-
-func (b *MessageBuilder) WithLevel(level Level) *MessageBuilder {
-	b.Level = level
-	return b
-}
-
-func (b *MessageBuilder) WithTag(tag string) *MessageBuilder {
-	b.Tag = tag
-	return b
-}
-
-func (b *MessageBuilder) WithFile(file string) *MessageBuilder {
-	b.File = file
-	return b
-}
-
-func (b *MessageBuilder) WithLine(line int) *MessageBuilder {
-	b.Line = line
-	return b
-}
-
-func (b *MessageBuilder) WithTime(time time.Time) *MessageBuilder {
-	b.Time = time
-	return b
-}
-
-func (b *MessageBuilder) WithArgs(args []interface{}) *MessageBuilder {
-	b.Args = args
-	return b
-}
-
-func (b *MessageBuilder) WithErrno(errno Errno) *MessageBuilder {
-	b.Errno = errno
-	return b
-}
-
-func (b *MessageBuilder) WithContext(ctx context.Context) *MessageBuilder {
-	b.Ctx = ctx
-	return b
-}
-
-func (b *MessageBuilder) Build() *Message {
-	return &Message{
-		level: b.Level,
-		time:  b.Time,
-		ctx:   b.Ctx,
-		tag:   b.Tag,
-		file:  b.File,
-		line:  b.Line,
-		args:  b.Args,
-		errno: b.Errno,
+func (msg *OptimizedMessage) Once(fn func() string) string {
+	v := msg.text.Load()
+	if v == nil {
+		text := fn()
+		msg.text.Store(text)
+		return text
 	}
+	return v.(string)
+}
+
+// FormattedMessage can convert itself to text by fmt.Sprint or fmt.Sprintf.
+type FormattedMessage struct {
+	format string
+	args   []interface{}
+}
+
+func NewFormattedMessage(format string, args []interface{}) Message {
+	return &FormattedMessage{
+		format: format,
+		args:   args,
+	}
+}
+
+func (msg *FormattedMessage) Text() string {
+	if len(msg.args) == 1 {
+		fn, ok := msg.args[0].(func() []interface{})
+		if ok {
+			msg.args = fn()
+		}
+	}
+	if msg.format == "" {
+		return fmt.Sprint(msg.args...)
+	}
+	return fmt.Sprintf(msg.format, msg.args...)
+}
+
+// JsonMessage can convert itself to text by json.Marshal.
+type JsonMessage struct {
+	data interface{}
+}
+
+func NewJsonMessage(data interface{}) Message {
+	return &JsonMessage{
+		data: data,
+	}
+}
+
+func (msg *JsonMessage) Text() string {
+	b, err := json.Marshal(msg.data)
+	if err != nil {
+		Status.Errorf("json encode %v return error %s", msg.data, err)
+		return fmt.Sprint(msg.data)
+	}
+	return string(b)
 }

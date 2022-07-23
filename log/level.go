@@ -16,65 +16,73 @@
 
 package log
 
-import "strings"
-
-const (
-	NoneLevel  = Level(-1)
-	TraceLevel = Level(0)
-	DebugLevel = Level(1)
-	InfoLevel  = Level(2)
-	WarnLevel  = Level(3)
-	ErrorLevel = Level(4)
-	PanicLevel = Level(5)
-	FatalLevel = Level(6)
-	OffLevel   = Level(7)
+import (
+	"fmt"
+	"strings"
 )
 
-// Level 日志输出级别。
+const (
+	NoneLevel = Level(iota)
+	TraceLevel
+	DebugLevel
+	InfoLevel
+	WarnLevel
+	ErrorLevel
+	PanicLevel
+	FatalLevel
+	OffLevel
+)
+
+// Level used for identifying the severity of an event.
 type Level int32
 
 func (level Level) String() string {
 	switch level {
+	case NoneLevel:
+		return "NONE"
 	case TraceLevel:
-		return "trace"
+		return "TRACE"
 	case DebugLevel:
-		return "debug"
+		return "DEBUG"
 	case InfoLevel:
-		return "info"
+		return "INFO"
 	case WarnLevel:
-		return "warn"
+		return "WARN"
 	case ErrorLevel:
-		return "error"
+		return "ERROR"
 	case PanicLevel:
-		return "panic"
+		return "PANIC"
 	case FatalLevel:
-		return "fatal"
+		return "FATAL"
 	case OffLevel:
-		return "off"
+		return "OFF"
 	default:
-		return "none"
+		return "INVALID"
 	}
 }
 
-func StringToLevel(str string) Level {
-	switch strings.ToLower(str) {
-	case "trace":
-		return TraceLevel
-	case "debug":
-		return DebugLevel
-	case "info":
-		return InfoLevel
-	case "warn":
-		return WarnLevel
-	case "error":
-		return ErrorLevel
-	case "panic":
-		return PanicLevel
-	case "fatal":
-		return FatalLevel
-	case "off":
-		return OffLevel
+// ParseLevel parses string to a level, and returns error if the conversion fails.
+func ParseLevel(str string) (Level, error) {
+	switch strings.ToUpper(str) {
+	case "NONE":
+		return NoneLevel, nil
+	case "TRACE":
+		return TraceLevel, nil
+	case "DEBUG":
+		return DebugLevel, nil
+	case "INFO":
+		return InfoLevel, nil
+	case "WARN":
+		return WarnLevel, nil
+	case "ERROR":
+		return ErrorLevel, nil
+	case "PANIC":
+		return PanicLevel, nil
+	case "FATAL":
+		return FatalLevel, nil
+	case "OFF":
+		return OffLevel, nil
 	default:
-		return NoneLevel
+		return -1, fmt.Errorf("invalid level %s", str)
 	}
 }

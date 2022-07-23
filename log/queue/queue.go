@@ -14,34 +14,56 @@
  * limitations under the License.
  */
 
-package differ
+package queue
 
-type XmlDiffItem struct {
-	A interface{}
-	B interface{}
+import "sync"
+
+const (
+	MaxEventCount = 10000
+)
+
+var (
+	inst *queue
+	once sync.Once
+)
+
+type Event interface {
+	OnEvent()
 }
 
-type XmlDiffResult struct {
-	Differs map[string]XmlDiffItem
-	Ignores map[string]XmlDiffItem
-	Equals  map[string]XmlDiffItem
+type queue struct {
+	ring chan Event
 }
 
-// XmlDiffer XML 比较器。
-type XmlDiffer struct {
+func get() *queue {
+	once.Do(func() {
+		inst = &queue{
+			ring: make(chan Event, MaxEventCount),
+		}
+		inst.consume()
+	})
+	return inst
 }
 
-// NewXmlDiffer 创建新的 XML 比较器。
-func NewXmlDiffer() *XmlDiffer {
-	return &XmlDiffer{}
+func Publish(e Event) bool {
+	return get().publish(e)
 }
 
-// Diff 比较 a,b 两个 XML 字符串，返回它们异同之处。
-func (d *XmlDiffer) Diff(a, b string) *XmlDiffResult {
-	return nil
+func (q *queue) publish(e Event) bool {
+	select {
+	case q.ring <- e:
+		return true
+	default:
+		return false
+	}
 }
 
-// DiffXML 比较 a,b 两个 XML 字符串，返回它们异同之处。
-func DiffXML(a, b string) *XmlDiffResult {
-	return NewXmlDiffer().Diff(a, b)
+func (q *queue) consume() {
+	go func() {
+		for {
+			if e := <-q.ring; e != nil {
+				e.OnEvent()
+			}
+		}
+	}()
 }

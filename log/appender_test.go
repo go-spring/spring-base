@@ -14,27 +14,36 @@
  * limitations under the License.
  */
 
-package util_test
+package log_test
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/go-spring/spring-base/assert"
-	"github.com/go-spring/spring-base/code"
-	"github.com/go-spring/spring-base/util"
+	"github.com/go-spring/spring-base/log"
 )
 
-func TestError(t *testing.T) {
+func TestCountingNoOpAppender(t *testing.T) {
+	appender := &log.CountingNoOpAppender{}
+	var wg sync.WaitGroup
+	wg.Add(2)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 3; i++ {
+			appender.Append(nil)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		for i := 0; i < 6; i++ {
+			appender.Append(nil)
+		}
+	}()
+	wg.Wait()
+	assert.Equal(t, appender.Count(), int64(9))
+}
 
-	e0 := util.Error(code.FileLine(), "error")
-	assert.Error(t, e0, ".*/error_test.go:29 error")
+func TestConsoleAppender(t *testing.T) {
 
-	e1 := util.Errorf(code.FileLine(), "error: %d", 0)
-	assert.Error(t, e1, ".*/error_test.go:32 error: 0")
-
-	e2 := util.Wrap(e0, code.FileLine(), "error")
-	assert.Error(t, e2, ".*/error_test.go:35 error; .*/error_test.go:29 error")
-
-	e3 := util.Wrapf(e1, code.FileLine(), "error: %d", 1)
-	assert.Error(t, e3, ".*/error_test.go:38 error: 1; .*/error_test.go:32 error: 0")
 }

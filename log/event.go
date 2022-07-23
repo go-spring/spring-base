@@ -16,31 +16,38 @@
 
 package log
 
-var (
-	OK    Errno = &errno{project: 0, code: 0, message: "OK"}
-	ERROR Errno = &errno{project: 999, code: 999, message: "ERROR"}
-)
+import "time"
 
-type Errno interface {
-	Msg() string
-	Code() uint32
+// Event provides contextual information about a log message.
+type Event struct {
+	entry Entry
+	time  time.Time
+	msg   Message
+	file  string
+	line  int
+	level Level
 }
 
-type errno struct {
-	message string
-	project uint32
-	code    uint16
+func (e *Event) Entry() Entry {
+	return e.entry
 }
 
-func NewErrno(project uint32, code uint16, msg string) Errno {
-	if project < 1000 {
-		panic("project invalid, should be >= 1000")
-	}
-	if code < 1 || code > 999 {
-		panic("code invalid, should be 1~999")
-	}
-	return &errno{project: project, code: code, message: msg}
+func (e *Event) Time() time.Time {
+	return e.time
 }
 
-func (e *errno) Msg() string  { return e.message }
-func (e *errno) Code() uint32 { return e.project*1000 + uint32(e.code) }
+func (e *Event) Msg() Message {
+	return e.msg
+}
+
+func (e *Event) File() string {
+	return e.file
+}
+
+func (e *Event) Line() int {
+	return e.line
+}
+
+func (e *Event) Level() Level {
+	return e.level
+}

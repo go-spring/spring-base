@@ -17,128 +17,159 @@
 package log
 
 import (
-	"context"
-
-	"github.com/go-spring/spring-base/atomic"
+	"github.com/go-spring/spring-base/log/queue"
 )
 
-type Logger struct {
-	name  string
-	entry BaseEntry
-	value atomic.Value
+var empty privateConfig = &emptyConfig{}
+
+func init() {
+	RegisterPlugin("Root", "Root", (*loggerConfig)(nil))
+	RegisterPlugin("Logger", "Logger", (*loggerConfig)(nil))
+	RegisterPlugin("AsyncRoot", "AsyncRoot", (*asyncLoggerConfig)(nil))
+	RegisterPlugin("AsyncLogger", "AsyncLogger", (*asyncLoggerConfig)(nil))
+	RegisterPlugin("AppenderRef", "AppenderRef", (*AppenderRef)(nil))
 }
 
-type LoggerConfig struct {
-	Level     Level
-	Appenders []Appender
+// privateConfig is the inner Logger.
+type privateConfig interface {
+	publisher
+	logEvent(e *Event)
+	getParent() privateConfig
+	getEntry() SimpleEntry
+	getName() string
+	getLevel() Level
+	getFilter() Filter
+	getAppenders() []*AppenderRef
 }
 
-func NewLogger(name string, config *LoggerConfig) *Logger {
-	l := &Logger{
-		name: name,
+type emptyConfig struct {
+	publisher
+}
+
+func (c *emptyConfig) logEvent(e *Event)            {}
+func (c *emptyConfig) getParent() privateConfig     { return nil }
+func (c *emptyConfig) getEntry() SimpleEntry        { return SimpleEntry{} }
+func (c *emptyConfig) getName() string              { return "" }
+func (c *emptyConfig) getLevel() Level              { return OffLevel }
+func (c *emptyConfig) getFilter() Filter            { return nil }
+func (c *emptyConfig) getAppenders() []*AppenderRef { return nil }
+
+// AppenderRef is a reference to an Appender.
+type AppenderRef struct {
+	appender Appender
+	Ref      string `PluginAttribute:"ref"`
+	Filter   Filter `PluginElement:"Filter"`
+	Level    Level  `PluginAttribute:"level,default=none"`
+}
+
+func (r *AppenderRef) Append(e *Event) {
+	if r.Level != NoneLevel && e.level < r.Level {
+		return
 	}
-	l.entry.logger = l
-	l.value.Store(config)
-	return l
+	if r.Filter != nil && ResultDeny == r.Filter.Filter(e.level, e.entry, e.msg) {
+		return
+	}
+	r.appender.Append(e)
 }
 
-func (l *Logger) Name() string {
-	return l.name
+// baseLoggerConfig is the base of loggerConfig and asyncLoggerConfig.
+type baseLoggerConfig struct {
+	parent       privateConfig
+	entry        SimpleEntry
+	Name         string         `PluginAttribute:"name"`
+	Filter       Filter         `PluginElement:"Filter"`
+	AppenderRefs []*AppenderRef `PluginElement:"AppenderRef"`
+	Level        Level          `PluginAttribute:"level,default=none"`
+	Additivity   bool           `PluginAttribute:"additivity,default=true"`
 }
 
-func (l *Logger) config() *LoggerConfig {
-	v := l.value.Load()
-	return v.(*LoggerConfig)
+func (c *baseLoggerConfig) getParent() privateConfig {
+	return c.parent
 }
 
-func (l *Logger) SetLevel(level Level) {
-	l.value.Store(&LoggerConfig{
-		Level:     level,
-		Appenders: l.config().Appenders,
-	})
+func (c *baseLoggerConfig) getEntry() SimpleEntry {
+	return c.entry
 }
 
-// WithSkip 创建包含 skip 信息的 Entry 。
-func (l *Logger) WithSkip(n int) BaseEntry {
-	return l.entry.WithSkip(n)
+func (c *baseLoggerConfig) getName() string {
+	return c.Name
 }
 
-// WithTag 创建包含 tag 信息的 Entry 。
-func (l *Logger) WithTag(tag string) BaseEntry {
-	return l.entry.WithTag(tag)
+func (c *baseLoggerConfig) getLevel() Level {
+	return c.Level
 }
 
-// WithContext 创建包含 context.Context 对象的 Entry 。
-func (l *Logger) WithContext(ctx context.Context) CtxEntry {
-	return l.entry.WithContext(ctx)
+func (c *baseLoggerConfig) getFilter() Filter {
+	return c.Filter
 }
 
-// Trace 输出 TRACE 级别的日志。
-func (l *Logger) Trace(args ...interface{}) {
-	printf(TraceLevel, &l.entry, "", args)
+func (c *baseLoggerConfig) getAppenders() []*AppenderRef {
+	return c.AppenderRefs
 }
 
-// Tracef 输出 TRACE 级别的日志。
-func (l *Logger) Tracef(format string, args ...interface{}) {
-	printf(TraceLevel, &l.entry, format, args)
+// logEvent is used only for parent logging events.
+func (c *baseLoggerConfig) logEvent(e *Event) {
+	if ResultDeny != c.filter(e.level, e.entry, e.msg) {
+		c.callAppenders(e)
+	}
 }
 
-// Debug 输出 DEBUG 级别的日志。
-func (l *Logger) Debug(args ...interface{}) {
-	printf(DebugLevel, &l.entry, "", args)
+// filter returns whether the event should be logged.
+func (c *baseLoggerConfig) filter(level Level, e Entry, msg Message) Result {
+	if c.Filter != nil && ResultDeny == c.Filter.Filter(level, e, msg) {
+		return ResultDeny
+	}
+	if c.Level != NoneLevel && level < c.Level {
+		return ResultDeny
+	}
+	return ResultAccept
 }
 
-// Debugf 输出 DEBUG 级别的日志。
-func (l *Logger) Debugf(format string, args ...interface{}) {
-	printf(DebugLevel, &l.entry, format, args)
+// callAppenders calls all the appenders inherited from the hierarchy circumventing.
+func (c *baseLoggerConfig) callAppenders(e *Event) {
+	for _, r := range c.AppenderRefs {
+		r.Append(e)
+	}
+	if c.parent != nil && c.Additivity {
+		c.parent.logEvent(e)
+	}
 }
 
-// Info 输出 INFO 级别的日志。
-func (l *Logger) Info(args ...interface{}) {
-	printf(InfoLevel, &l.entry, "", args)
+// loggerConfig publishes events synchronously.
+type loggerConfig struct {
+	baseLoggerConfig
 }
 
-// Infof 输出 INFO 级别的日志。
-func (l *Logger) Infof(format string, args ...interface{}) {
-	printf(InfoLevel, &l.entry, format, args)
+func (c *loggerConfig) Init() error {
+	c.entry = SimpleEntry{pub: c}
+	return nil
 }
 
-// Warn 输出 WARN 级别的日志。
-func (l *Logger) Warn(args ...interface{}) {
-	printf(WarnLevel, &l.entry, "", args)
+func (c *loggerConfig) publish(e *Event) {
+	c.callAppenders(e)
 }
 
-// Warnf 输出 WARN 级别的日志。
-func (l *Logger) Warnf(format string, args ...interface{}) {
-	printf(WarnLevel, &l.entry, format, args)
+// asyncLoggerConfig publishes events synchronously.
+type asyncLoggerConfig struct {
+	baseLoggerConfig
 }
 
-// Error 输出 ERROR 级别的日志。
-func (l *Logger) Error(args ...interface{}) {
-	printf(ErrorLevel, &l.entry, "", args)
+func (c *asyncLoggerConfig) Init() error {
+	c.entry = SimpleEntry{pub: c}
+	return nil
 }
 
-// Errorf 输出 ERROR 级别的日志。
-func (l *Logger) Errorf(format string, args ...interface{}) {
-	printf(ErrorLevel, &l.entry, format, args)
+type eventWrapper struct {
+	c *asyncLoggerConfig
+	e *Event
 }
 
-// Panic 输出 PANIC 级别的日志。
-func (l *Logger) Panic(args ...interface{}) {
-	printf(PanicLevel, &l.entry, "", args)
+func (w *eventWrapper) OnEvent() {
+	w.c.callAppenders(w.e)
 }
 
-// Panicf 输出 PANIC 级别的日志。
-func (l *Logger) Panicf(format string, args ...interface{}) {
-	printf(PanicLevel, &l.entry, format, args)
-}
-
-// Fatal 输出 FATAL 级别的日志。
-func (l *Logger) Fatal(args ...interface{}) {
-	printf(FatalLevel, &l.entry, "", args)
-}
-
-// Fatalf 输出 FATAL 级别的日志。
-func (l *Logger) Fatalf(format string, args ...interface{}) {
-	printf(FatalLevel, &l.entry, format, args)
+// publish pushes events into the queue and these events will consumed by other
+// goroutine, so the current goroutine will not be blocked.
+func (c *asyncLoggerConfig) publish(e *Event) {
+	queue.Publish(&eventWrapper{c: c, e: e})
 }
