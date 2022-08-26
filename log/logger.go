@@ -20,8 +20,6 @@ import (
 	"github.com/go-spring/spring-base/log/queue"
 )
 
-var empty privateConfig = &emptyConfig{}
-
 func init() {
 	RegisterPlugin("Root", "Root", (*loggerConfig)(nil))
 	RegisterPlugin("Logger", "Logger", (*loggerConfig)(nil))
@@ -42,18 +40,6 @@ type privateConfig interface {
 	getAppenders() []*AppenderRef
 }
 
-type emptyConfig struct {
-	publisher
-}
-
-func (c *emptyConfig) logEvent(e *Event)            {}
-func (c *emptyConfig) getParent() privateConfig     { return nil }
-func (c *emptyConfig) getEntry() SimpleEntry        { return SimpleEntry{} }
-func (c *emptyConfig) getName() string              { return "" }
-func (c *emptyConfig) getLevel() Level              { return OffLevel }
-func (c *emptyConfig) getFilter() Filter            { return nil }
-func (c *emptyConfig) getAppenders() []*AppenderRef { return nil }
-
 // AppenderRef is a reference to an Appender.
 type AppenderRef struct {
 	appender Appender
@@ -66,7 +52,7 @@ func (r *AppenderRef) Append(e *Event) {
 	if r.Level != NoneLevel && e.level < r.Level {
 		return
 	}
-	if r.Filter != nil && ResultDeny == r.Filter.Filter(e.level, e.entry, e.msg) {
+	if r.Filter != nil && ResultDeny == r.Filter.Filter(e.level, e.entry, e.fields) {
 		return
 	}
 	r.appender.Append(e)
@@ -109,14 +95,14 @@ func (c *baseLoggerConfig) getAppenders() []*AppenderRef {
 
 // logEvent is used only for parent logging events.
 func (c *baseLoggerConfig) logEvent(e *Event) {
-	if ResultDeny != c.filter(e.level, e.entry, e.msg) {
+	if ResultDeny != c.filter(e.level, e.entry, e.fields) {
 		c.callAppenders(e)
 	}
 }
 
 // filter returns whether the event should be logged.
-func (c *baseLoggerConfig) filter(level Level, e Entry, msg Message) Result {
-	if c.Filter != nil && ResultDeny == c.Filter.Filter(level, e, msg) {
+func (c *baseLoggerConfig) filter(level Level, e Entry, fields []Field) Result {
+	if c.Filter != nil && ResultDeny == c.Filter.Filter(level, e, fields) {
 		return ResultDeny
 	}
 	if c.Level != NoneLevel && level < c.Level {
