@@ -17,24 +17,27 @@
 package atomic
 
 import (
+	"encoding/json"
 	"sync/atomic"
 	"time"
-
-	"github.com/go-spring/spring-base/util"
 )
 
 type Time struct {
-	_ util.NoCopy
+	_ nocopy
 	v atomic.Value
 }
 
-func (t *Time) Load() time.Time {
-	if x, ok := t.v.Load().(time.Time); ok {
+func (x *Time) Load() time.Time {
+	if x, ok := x.v.Load().(time.Time); ok {
 		return x
 	}
 	return time.Time{}
 }
 
-func (t *Time) Store(x time.Time) {
-	t.v.Store(x)
+func (x *Time) Store(val time.Time) {
+	x.v.Store(val)
+}
+
+func (x *Time) MarshalJSON() ([]byte, error) {
+	return json.Marshal(x.Load())
 }

@@ -14,15 +14,4 @@
  * limitations under the License.
  */
 
-package pkg
-
-import (
-	"fmt"
-)
-
-// SamePkg golang allows packages with the same name under different paths.
-type SamePkg struct{}
-
-func (p *SamePkg) Package() {
-	fmt.Println("github.com/go-spring/spring-base/util/testdata/pkg/foo/pkg.SamePkg")
-}
+package atomic_test

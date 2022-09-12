@@ -14,15 +14,22 @@
  * limitations under the License.
  */
 
-package pkg
+package atomic
 
-import (
-	"fmt"
-)
+// nocopy may be added to structs which must not be copied
+// after the first use.
+//
+// See https://golang.org/issues/8005#issuecomment-190753527
+// for details.
+//
+// Note that it must not be embedded, due to the Lock and Unlock methods.
+type nocopy struct{}
 
-// SamePkg golang allows packages with the same name under different paths.
-type SamePkg struct{}
+// Lock is a no-op used by -copylocks checker from `go vet`.
+func (*nocopy) Lock()   {}
+func (*nocopy) Unlock() {}
 
-func (p *SamePkg) Package() {
-	fmt.Println("github.com/go-spring/spring-base/util/testdata/pkg/foo/pkg.SamePkg")
-}
+// align64 may be added to structs that must be 64-bit aligned.
+// This struct is recognized by a special case in the compiler
+// and will not work if copied to any other package.
+type align64 struct{}
