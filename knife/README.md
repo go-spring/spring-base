@@ -1,6 +1,6 @@
 # knife
 
-提供了 context.Context 上的缓存。
+Provides cache on `context.Context`.
 
 ## Install
 
@@ -20,4 +20,5 @@ import "github.com/go-spring/spring-base/knife"
 ctx = knife.New(context.Background())
 err = knife.Store(ctx, "a", "b")
 v, err := knife.Load(ctx, "a")
+v, err = knife.LoadOrStore(ctx, "a", "b")
 ```

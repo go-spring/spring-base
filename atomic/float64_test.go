@@ -22,16 +22,36 @@ import (
 
 	"github.com/go-spring/spring-base/assert"
 	"github.com/go-spring/spring-base/atomic"
+	"github.com/go-spring/spring-base/json"
 )
 
 func TestFloat64(t *testing.T) {
 
-	// atomic.Float64 和 uint64 占用的空间大小一样
+	// atomic.Float64 and uint64 occupy the same space
 	assert.Equal(t, unsafe.Sizeof(atomic.Float64{}), uintptr(8))
 
 	var f atomic.Float64
 	assert.Equal(t, f.Load(), float64(0))
 
+	v := f.Add(0.5)
+	assert.Equal(t, v, 0.5)
+	assert.Equal(t, f.Load(), 0.5)
+
 	f.Store(1)
 	assert.Equal(t, f.Load(), float64(1))
+
+	old := f.Swap(2)
+	assert.Equal(t, old, float64(1))
+	assert.Equal(t, f.Load(), float64(2))
+
+	swapped := f.CompareAndSwap(2, 3)
+	assert.True(t, swapped)
+	assert.Equal(t, f.Load(), float64(3))
+
+	swapped = f.CompareAndSwap(2, 3)
+	assert.False(t, swapped)
+	assert.Equal(t, f.Load(), float64(3))
+
+	bytes, _ := json.Marshal(&f)
+	assert.Equal(t, string(bytes), "3")
 }

@@ -22,11 +22,12 @@ import (
 
 	"github.com/go-spring/spring-base/assert"
 	"github.com/go-spring/spring-base/atomic"
+	"github.com/go-spring/spring-base/json"
 )
 
 func TestBool(t *testing.T) {
 
-	// atomic.Bool 和 int32 占用的空间大小一样
+	// atomic.Bool and uint32 occupy the same space
 	assert.Equal(t, unsafe.Sizeof(atomic.Bool{}), uintptr(4))
 
 	var b atomic.Bool
@@ -34,4 +35,19 @@ func TestBool(t *testing.T) {
 
 	b.Store(true)
 	assert.True(t, b.Load())
+
+	old := b.Swap(false)
+	assert.True(t, old)
+	assert.False(t, b.Load())
+
+	swapped := b.CompareAndSwap(false, true)
+	assert.True(t, swapped)
+	assert.True(t, b.Load())
+
+	swapped = b.CompareAndSwap(false, true)
+	assert.False(t, swapped)
+	assert.True(t, b.Load())
+
+	bytes, _ := json.Marshal(&b)
+	assert.Equal(t, string(bytes), "true")
 }

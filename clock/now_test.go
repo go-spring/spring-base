@@ -24,28 +24,62 @@ import (
 	"github.com/go-spring/spring-base/assert"
 	"github.com/go-spring/spring-base/clock"
 	"github.com/go-spring/spring-base/knife"
+	"github.com/go-spring/spring-base/run"
 )
 
 func TestNow(t *testing.T) {
-	ctx, _ := knife.New(context.Background())
-	trueNow := time.Now()
 
-	t.Run("SetFixedTime", func(t *testing.T) {
-		err := clock.SetFixedTime(ctx, time.Unix(100, 0))
-		assert.Nil(t, err)
-		defer clock.ResetTime(ctx)
-		now := clock.Now(ctx)
-		assert.Equal(t, now, time.Unix(100, 0))
+	t.Run("normal_mode", func(t *testing.T) {
+		reset := run.SetMode(run.NormalModeFlag)
+		defer func() { reset() }()
+		ctx, _ := knife.New(context.Background())
+		knife.Store(ctx, "::now::", time.Now().Add(time.Hour))
+		assert.True(t, clock.Now(ctx).Sub(time.Now()) < time.Millisecond)
 	})
 
-	t.Run("SetBaseTime", func(t *testing.T) {
+	t.Run("record_mode", func(t *testing.T) {
+		reset := run.SetMode(run.RecordModeFlag)
+		defer func() { reset() }()
+		ctx, _ := knife.New(context.Background())
+		knife.Store(ctx, "::now::", time.Now().Add(time.Hour))
+		assert.True(t, clock.Now(ctx).Sub(time.Now()) < time.Millisecond)
+	})
+
+	t.Run("null_time", func(t *testing.T) {
+		ctx, _ := knife.New(context.Background())
+		knife.Store(ctx, "::now::", time.Now().Add(time.Hour))
+		assert.True(t, clock.Now(ctx).Sub(time.Now()) < time.Millisecond)
+	})
+
+	t.Run("base_time", func(t *testing.T) {
+		ctx, _ := knife.New(context.Background())
+		trueNow := time.Now()
+
 		err := clock.SetBaseTime(ctx, time.Unix(100, 0))
 		assert.Nil(t, err)
-		defer clock.ResetTime(ctx)
-		time.Sleep(2 * time.Second)
-		now := clock.Now(ctx)
-		assert.True(t, now.Sub(time.Unix(100, 0)) < 2500*time.Millisecond)
+
+		time.Sleep(5 * time.Millisecond)
+		n := clock.Now(ctx).Sub(time.Unix(100, 0))
+		assert.True(t, n > 5*time.Millisecond && n < 10*time.Millisecond)
+
+		clock.ResetTime(ctx)
+		assert.True(t, clock.Now(ctx).Sub(trueNow) < 20*time.Millisecond)
 	})
 
-	assert.True(t, clock.Now(ctx).Sub(trueNow) < 3*time.Second)
+	t.Run("fixed_time", func(t *testing.T) {
+		ctx, _ := knife.New(context.Background())
+		trueNow := time.Now()
+
+		err := clock.SetFixedTime(ctx, time.Unix(100, 0))
+		assert.Nil(t, err)
+
+		now := clock.Now(ctx)
+		assert.Equal(t, now, time.Unix(100, 0))
+
+		time.Sleep(10 * time.Millisecond)
+		assert.Equal(t, now, time.Unix(100, 0))
+
+		clock.ResetTime(ctx)
+		assert.True(t, clock.Now(ctx).Sub(trueNow) < 20*time.Millisecond)
+	})
 }

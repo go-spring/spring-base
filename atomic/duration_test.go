@@ -23,16 +23,36 @@ import (
 
 	"github.com/go-spring/spring-base/assert"
 	"github.com/go-spring/spring-base/atomic"
+	"github.com/go-spring/spring-base/json"
 )
 
 func TestDuration(t *testing.T) {
 
-	// atomic.Duration 和 int64 占用的空间大小一样
+	// atomic.Duration and int64 occupy the same space
 	assert.Equal(t, unsafe.Sizeof(atomic.Duration{}), uintptr(8))
 
 	var d atomic.Duration
 	assert.Equal(t, d.Load(), time.Duration(0))
 
+	v := d.Add(time.Second)
+	assert.Equal(t, v, time.Second)
+	assert.Equal(t, d.Load(), time.Second)
+
 	d.Store(time.Minute)
 	assert.Equal(t, d.Load(), time.Minute)
+
+	old := d.Swap(time.Hour)
+	assert.Equal(t, old, time.Minute)
+	assert.Equal(t, d.Load(), time.Hour)
+
+	swapped := d.CompareAndSwap(time.Hour, time.Second)
+	assert.True(t, swapped)
+	assert.Equal(t, d.Load(), time.Second)
+
+	swapped = d.CompareAndSwap(time.Hour, time.Second)
+	assert.False(t, swapped)
+	assert.Equal(t, d.Load(), time.Second)
+
+	bytes, _ := json.Marshal(&d)
+	assert.Equal(t, string(bytes), "1000000000")
 }

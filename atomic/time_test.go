@@ -23,16 +23,27 @@ import (
 
 	"github.com/go-spring/spring-base/assert"
 	"github.com/go-spring/spring-base/atomic"
+	"github.com/go-spring/spring-base/json"
 )
 
 func TestTime(t *testing.T) {
 
-	// atomic.Time 和 interface{} 占用的空间大小一样
-	assert.Equal(t, unsafe.Sizeof(atomic.Time{}), uintptr(16))
+	// atomic.Time and interface{} occupy the same space
+	assert.Equal(t, unsafe.Sizeof(atomic.Time{}), uintptr(16+8))
 
 	var tm atomic.Time
 	assert.Equal(t, tm.Load(), time.Time{})
 
-	tm.Store(time.Unix(1, 1))
-	assert.Equal(t, tm.Load(), time.Unix(1, 1))
+	tm.Store(time.Unix(1, 1).UTC())
+	assert.Equal(t, tm.Load(), time.Unix(1, 1).UTC())
+
+	bytes, _ := json.Marshal(&tm)
+	assert.Equal(t, string(bytes), `"Thu Jan  1 00:00:01 UTC 1970"`)
+
+	tm.SetMarshalJSON(func(t time.Time) ([]byte, error) {
+		return json.Marshal(t.Format("20060102"))
+	})
+
+	bytes, _ = json.Marshal(&tm)
+	assert.Equal(t, string(bytes), `"19700101"`)
 }

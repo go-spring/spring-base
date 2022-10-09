@@ -24,32 +24,51 @@ import (
 
 	"github.com/go-spring/spring-base/assert"
 	"github.com/go-spring/spring-base/atomic"
+	"github.com/go-spring/spring-base/json"
 )
 
 func TestInt64(t *testing.T) {
 
-	// atomic.Int64 和 int64 占用的空间大小一样
+	// atomic.Int64 and int64 occupy the same space
 	assert.Equal(t, unsafe.Sizeof(atomic.Int64{}), uintptr(8))
 
 	var i atomic.Int64
 	assert.Equal(t, i.Load(), int64(0))
 
+	v := i.Add(5)
+	assert.Equal(t, v, int64(5))
+	assert.Equal(t, i.Load(), int64(5))
+
 	i.Store(1)
 	assert.Equal(t, i.Load(), int64(1))
+
+	old := i.Swap(2)
+	assert.Equal(t, old, int64(1))
+	assert.Equal(t, i.Load(), int64(2))
+
+	swapped := i.CompareAndSwap(2, 3)
+	assert.True(t, swapped)
+	assert.Equal(t, i.Load(), int64(3))
+
+	swapped = i.CompareAndSwap(2, 3)
+	assert.False(t, swapped)
+	assert.Equal(t, i.Load(), int64(3))
+
+	bytes, _ := json.Marshal(&i)
+	assert.Equal(t, string(bytes), "3")
 }
 
 func TestReflectInt64(t *testing.T) {
 
-	// s 必须分配在堆上
-	s := new(struct {
+	var s struct {
 		I atomic.Int64
-	})
+	}
 
 	var wg sync.WaitGroup
 	wg.Add(2)
 	go func() {
 		defer wg.Done()
-		addr := reflect.ValueOf(s).Elem().Field(0).Addr()
+		addr := reflect.ValueOf(&s).Elem().Field(0).Addr()
 		v, ok := addr.Interface().(*atomic.Int64)
 		assert.True(t, ok)
 		for i := 0; i < 10; i++ {
@@ -58,7 +77,7 @@ func TestReflectInt64(t *testing.T) {
 	}()
 	go func() {
 		defer wg.Done()
-		addr := reflect.ValueOf(s).Elem().Field(0).Addr()
+		addr := reflect.ValueOf(&s).Elem().Field(0).Addr()
 		v, ok := addr.Interface().(*atomic.Int64)
 		assert.True(t, ok)
 		for i := 0; i < 10; i++ {
