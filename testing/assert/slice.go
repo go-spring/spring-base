@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/go-spring/gs-assert/internal"
+	"github.com/go-spring/spring-base/testing/internal"
 )
 
 // SliceAssertion encapsulates a slice value and a test handler for making assertions on the slice.

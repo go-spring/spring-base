@@ -19,7 +19,7 @@ package assert
 import (
 	"fmt"
 
-	"github.com/go-spring/gs-assert/internal"
+	"github.com/go-spring/spring-base/testing/internal"
 )
 
 type Number interface {

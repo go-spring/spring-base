@@ -20,8 +20,8 @@ import (
 	"math"
 	"testing"
 
-	"github.com/go-spring/gs-assert/assert"
-	"github.com/go-spring/gs-assert/internal"
+	"github.com/go-spring/spring-base/testing/assert"
+	"github.com/go-spring/spring-base/testing/internal"
 )
 
 func TestNumber_Equal(t *testing.T) {

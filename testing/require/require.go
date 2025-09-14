@@ -19,8 +19,8 @@
 package require
 
 import (
-	"github.com/go-spring/gs-assert/assert"
-	"github.com/go-spring/gs-assert/internal"
+	"github.com/go-spring/spring-base/testing/assert"
+	"github.com/go-spring/spring-base/testing/internal"
 )
 
 // Panic asserts that fn panics and the panic message matches expr.
