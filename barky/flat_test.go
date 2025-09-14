@@ -22,7 +22,7 @@ import (
 	"github.com/go-spring/spring-base/testing/assert"
 )
 
-func TestFlattenMap(t *testing.T) {
+func TestFlatten(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    map[string]any

@@ -123,6 +123,7 @@ func (s *Storage) Data() map[string]string {
 
 // AddFile registers a file name into the storage, assigning it
 // a unique int8 index if it has not been added before.
+// The index is assigned incrementally starting from 0.
 // Returns the index of the file.
 func (s *Storage) AddFile(file string) int8 {
 	idx, ok := s.file[file]
@@ -210,6 +211,7 @@ func (s *Storage) Has(key string) bool {
 
 // Get retrieves the value associated with a key. If the key is not found
 // and a default value is provided, the default is returned instead.
+// If multiple default values are provided, only the first one is used.
 func (s *Storage) Get(key string, def ...string) string {
 	v, ok := s.RawData()[key]
 	if !ok && len(def) > 0 {

@@ -326,4 +326,61 @@ func TestStorage(t *testing.T) {
 			"a.b[0].c", "a.b[0].d[0]",
 		})
 	})
+
+	t.Run("subkeys with nil root", func(t *testing.T) {
+		s := NewStorage()
+
+		subKeys, err := s.SubKeys("")
+		assert.That(t, err).Nil()
+		assert.That(t, subKeys).Nil()
+
+		subKeys, err = s.SubKeys("any")
+		assert.That(t, err).Nil()
+		assert.That(t, subKeys).Nil()
+	})
+
+	t.Run("get with default value", func(t *testing.T) {
+		s := NewStorage()
+
+		val := s.Get("nonexistent", "default")
+		assert.That(t, val).Equal("default")
+
+		val = s.Get("nonexistent", "first", "second")
+		assert.That(t, val).Equal("first")
+
+		val = s.Get("nonexistent")
+		assert.That(t, val).Equal("")
+	})
+
+	t.Run("add file multiple times", func(t *testing.T) {
+		s := NewStorage()
+
+		fileID1 := s.AddFile("test.go")
+		fileID2 := s.AddFile("test.go")
+		assert.That(t, fileID1).Equal(fileID2)
+
+		file := s.RawFile()
+		assert.ThatMap(t, file).Equal(map[string]int8{
+			"test.go": 0,
+		})
+	})
+
+	t.Run("add multiple files", func(t *testing.T) {
+		s := NewStorage()
+
+		fileID1 := s.AddFile("first.go")
+		fileID2 := s.AddFile("second.go")
+		fileID3 := s.AddFile("third.go")
+
+		assert.That(t, fileID1).Equal(int8(0))
+		assert.That(t, fileID2).Equal(int8(1))
+		assert.That(t, fileID3).Equal(int8(2))
+
+		file := s.RawFile()
+		assert.ThatMap(t, file).Equal(map[string]int8{
+			"first.go":  0,
+			"second.go": 1,
+			"third.go":  2,
+		})
+	})
 }

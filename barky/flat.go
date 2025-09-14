@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/go-spring/spring-base/internal/cast"
+	"github.com/spf13/cast"
 )
 
 // FlattenMap takes a nested map[string]any and flattens it into a
