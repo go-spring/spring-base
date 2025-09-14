@@ -19,7 +19,7 @@ package assert_test
 import (
 	"testing"
 
-	"github.com/go-spring/spring-base/assert"
+	"github.com/go-spring/spring-base/internal/assert"
 )
 
 func TestString_EqualFold(t *testing.T) {

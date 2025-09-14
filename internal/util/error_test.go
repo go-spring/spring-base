@@ -19,8 +19,8 @@ package util_test
 import (
 	"testing"
 
-	"github.com/go-spring/spring-base/assert"
-	"github.com/go-spring/spring-base/code"
+	"github.com/go-spring/spring-base/internal/assert"
+	"github.com/go-spring/spring-base/internal/code"
 	"github.com/go-spring/spring-base/internal/util"
 )
 

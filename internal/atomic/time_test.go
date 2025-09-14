@@ -21,8 +21,8 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/go-spring/spring-base/assert"
-	"github.com/go-spring/spring-base/atomic"
+	"github.com/go-spring/spring-base/internal/assert"
+	"github.com/go-spring/spring-base/internal/atomic"
 	"github.com/go-spring/spring-base/internal/json"
 )
 

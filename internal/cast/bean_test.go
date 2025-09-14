@@ -19,8 +19,8 @@ package cast_test
 import (
 	"testing"
 
-	"github.com/go-spring/spring-base/assert"
-	"github.com/go-spring/spring-base/cast"
+	"github.com/go-spring/spring-base/internal/assert"
+	"github.com/go-spring/spring-base/internal/cast"
 )
 
 func TestFastEncoding(t *testing.T) {

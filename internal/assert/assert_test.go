@@ -23,7 +23,7 @@ import (
 	"io"
 	"testing"
 
-	"github.com/go-spring/spring-base/assert"
+	"github.com/go-spring/spring-base/internal/assert"
 	"github.com/golang/mock/gomock"
 )
 

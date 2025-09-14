@@ -24,8 +24,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-spring/spring-base/assert"
-	"github.com/go-spring/spring-base/cache"
+	"github.com/go-spring/spring-base/internal/assert"
+	"github.com/go-spring/spring-base/internal/cache"
 )
 
 type response struct {

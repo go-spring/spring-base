@@ -20,8 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-spring/spring-base/assert"
-	"github.com/go-spring/spring-base/clock"
+	"github.com/go-spring/spring-base/internal/assert"
+	"github.com/go-spring/spring-base/internal/clock"
 )
 
 func BenchmarkFormat(b *testing.B) {

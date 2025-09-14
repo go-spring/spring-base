@@ -20,7 +20,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/go-spring/spring-base/assert"
+	"github.com/go-spring/spring-base/internal/assert"
 )
 
 func TestSetMode(t *testing.T) {

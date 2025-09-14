@@ -21,8 +21,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/go-spring/spring-base/assert"
-	"github.com/go-spring/spring-base/clock"
+	"github.com/go-spring/spring-base/internal/assert"
+	"github.com/go-spring/spring-base/internal/clock"
 	"github.com/go-spring/spring-base/internal/knife"
 	"github.com/go-spring/spring-base/internal/run"
 )

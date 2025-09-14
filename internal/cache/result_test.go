@@ -19,8 +19,8 @@ package cache_test
 import (
 	"testing"
 
-	"github.com/go-spring/spring-base/assert"
-	"github.com/go-spring/spring-base/cache"
+	"github.com/go-spring/spring-base/internal/assert"
+	"github.com/go-spring/spring-base/internal/cache"
 )
 
 func TestValueResult(t *testing.T) {
