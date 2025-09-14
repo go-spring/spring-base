@@ -437,18 +437,18 @@ expected: (string) "0"
 	m.Reset()
 	type NestedStruct struct {
 		ID   int
-		Data map[string]interface{}
+		Data map[string]any
 	}
 	s1 := NestedStruct{
 		ID: 1,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"name":   "test",
 			"values": []int{1, 2, 3},
 		},
 	}
 	s2 := NestedStruct{
 		ID: 1,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"name":   "test",
 			"values": []int{1, 2, 3},
 		},
@@ -556,18 +556,18 @@ func TestThat_NotEqual(t *testing.T) {
 	m.Reset()
 	type NestedStruct struct {
 		ID   int
-		Data map[string]interface{}
+		Data map[string]any
 	}
 	ns1 := NestedStruct{
 		ID: 1,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"name":   "test",
 			"values": []int{1, 2, 3},
 		},
 	}
 	ns2 := NestedStruct{
 		ID: 1,
-		Data: map[string]interface{}{
+		Data: map[string]any{
 			"name":   "test",
 			"values": []int{1, 2, 3},
 		},
@@ -620,8 +620,8 @@ expected: (*assert_test.Person) {Name:"Alice"}`)
 
 	// Test with nil values
 	m.Reset()
-	var nil1 interface{} = nil
-	var nil2 interface{} = nil
+	var nil1 any = nil
+	var nil2 any = nil
 	assert.That(m, nil1).Same(nil2)
 	assert.ThatString(t, m.String()).Equal("")
 
@@ -674,8 +674,8 @@ func TestThat_NotSame(t *testing.T) {
 
 	// Test with nil values
 	m.Reset()
-	var nil1 interface{} = nil
-	var nil2 interface{} = nil
+	var nil1 any = nil
+	var nil2 any = nil
 	assert.That(m, nil1).NotSame(nil2)
 	assert.ThatString(t, m.String()).Equal(`error# Assertion failed: expected values to be different, but they are same
   actual: (<nil>) nil`)
@@ -839,12 +839,7 @@ type ComplexContainer struct {
 }
 
 func (c *ComplexContainer) Has(key ComplexKey) bool {
-	for _, item := range c.Items {
-		if item == key {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(c.Items, key)
 }
 
 func TestThat_Has(t *testing.T) {

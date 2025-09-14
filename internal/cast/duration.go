@@ -21,16 +21,16 @@ import (
 	"time"
 )
 
-// ToDuration casts an interface{} to a time.Duration.
+// ToDuration casts an any to a time.Duration.
 // When type is clear, it is recommended to use standard library functions.
-func ToDuration(i interface{}, unit ...time.Duration) time.Duration {
+func ToDuration(i any, unit ...time.Duration) time.Duration {
 	v, _ := ToDurationE(i, unit...)
 	return v
 }
 
-// ToDurationE casts an interface{} to a time.Duration.
+// ToDurationE casts an any to a time.Duration.
 // When type is clear, it is recommended to use standard library functions.
-func ToDurationE(i interface{}, unit ...time.Duration) (time.Duration, error) {
+func ToDurationE(i any, unit ...time.Duration) (time.Duration, error) {
 	base := int64(time.Nanosecond)
 	if len(unit) > 0 {
 		base = int64(unit[0])

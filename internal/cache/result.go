@@ -27,7 +27,7 @@ import (
 // Result stores a value.
 type Result interface {
 	JSON() (string, error)
-	Load(v interface{}) error
+	Load(v any) error
 }
 
 // ValueResult stores a `reflect.Value`.
@@ -37,7 +37,7 @@ type ValueResult struct {
 }
 
 // NewValueResult returns a Result which stores a `reflect.Value`.
-func NewValueResult(v interface{}) Result {
+func NewValueResult(v any) Result {
 	return &ValueResult{
 		v: reflect.ValueOf(v),
 		t: reflect.TypeOf(v),
@@ -54,7 +54,7 @@ func (r *ValueResult) JSON() (string, error) {
 }
 
 // Load injects the saved value to v.
-func (r *ValueResult) Load(v interface{}) error {
+func (r *ValueResult) Load(v any) error {
 	outVal := reflect.ValueOf(v)
 	if outVal.Kind() != reflect.Ptr || outVal.IsNil() {
 		return errors.New("value should be ptr and not nil")
@@ -84,6 +84,6 @@ func (r *JSONResult) JSON() (string, error) {
 }
 
 // Load injects the saved value to v.
-func (r *JSONResult) Load(v interface{}) error {
+func (r *JSONResult) Load(v any) error {
 	return json.Unmarshal([]byte(r.v), v)
 }

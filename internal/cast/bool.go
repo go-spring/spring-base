@@ -23,16 +23,16 @@ import (
 
 func BoolPtr(s bool) *bool { return &s }
 
-// ToBool casts an interface{} to a bool.
+// ToBool casts an any to a bool.
 // When type is clear, it is recommended to use standard library functions.
-func ToBool(i interface{}) bool {
+func ToBool(i any) bool {
 	v, _ := ToBoolE(i)
 	return v
 }
 
-// ToBoolE casts an interface{} to a bool.
+// ToBoolE casts an any to a bool.
 // When type is clear, it is recommended to use standard library functions.
-func ToBoolE(i interface{}) (bool, error) {
+func ToBoolE(i any) (bool, error) {
 	switch b := i.(type) {
 	case nil:
 		return false, nil

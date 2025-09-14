@@ -30,7 +30,7 @@ func BenchmarkToDuration(b *testing.B) {
 	b.Run("string", func(b *testing.B) {
 		v := cast.ToString(time.Now().UnixNano()) + "ns"
 		b.Run("parse", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := time.ParseDuration(v)
 				if err != nil {
 					b.Fatal(err)
@@ -39,7 +39,7 @@ func BenchmarkToDuration(b *testing.B) {
 		})
 
 		b.Run("go-spring", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := cast.ToDurationE(v)
 				if err != nil {
 					b.Fatal(err)

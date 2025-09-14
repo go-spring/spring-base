@@ -27,7 +27,7 @@ var ForbiddenMethod = errors.New("forbidden method")
 // UnimplementedMethod throws this error when calling an unimplemented method.
 var UnimplementedMethod = errors.New("unimplemented method")
 
-var WrapFormat = func(err error, fileline string, format string, a ...interface{}) error {
+var WrapFormat = func(err error, fileline string, format string, a ...any) error {
 	if err == nil {
 		if format != "" {
 			return fmt.Errorf(fileline+" "+format, a...)
@@ -48,7 +48,7 @@ func Error(fileline string, text string) error {
 
 // Errorf returns an error with the file and line.
 // The file and line may be calculated at the compile time in the future.
-func Errorf(fileline string, format string, a ...interface{}) error {
+func Errorf(fileline string, format string, a ...any) error {
 	return WrapFormat(nil, fileline, format, a...)
 }
 
@@ -60,6 +60,6 @@ func Wrap(err error, fileline string, text string) error {
 
 // Wrapf returns an error with the file and line.
 // The file and line may be calculated at the compile time in the future.
-func Wrapf(err error, fileline string, format string, a ...interface{}) error {
+func Wrapf(err error, fileline string, format string, a ...any) error {
 	return WrapFormat(err, fileline, format, a...)
 }

@@ -27,44 +27,44 @@ func Uint16Ptr(s uint16) *uint16 { return &s }
 func Uint32Ptr(s uint32) *uint32 { return &s }
 func Uint64Ptr(s uint64) *uint64 { return &s }
 
-// ToUint casts an interface{} to an uint.
+// ToUint casts an any to an uint.
 // When type is clear, it is recommended to use standard library functions.
-func ToUint(i interface{}) uint {
+func ToUint(i any) uint {
 	v, _ := ToUint64E(i)
 	return uint(v)
 }
 
-// ToUint8 casts an interface{} to an uint8.
+// ToUint8 casts an any to an uint8.
 // When type is clear, it is recommended to use standard library functions.
-func ToUint8(i interface{}) uint8 {
+func ToUint8(i any) uint8 {
 	v, _ := ToUint64E(i)
 	return uint8(v)
 }
 
-// ToUint16 casts an interface{} to an uint16.
+// ToUint16 casts an any to an uint16.
 // When type is clear, it is recommended to use standard library functions.
-func ToUint16(i interface{}) uint16 {
+func ToUint16(i any) uint16 {
 	v, _ := ToUint64E(i)
 	return uint16(v)
 }
 
-// ToUint32 casts an interface{} to an uint32.
+// ToUint32 casts an any to an uint32.
 // When type is clear, it is recommended to use standard library functions.
-func ToUint32(i interface{}) uint32 {
+func ToUint32(i any) uint32 {
 	v, _ := ToUint64E(i)
 	return uint32(v)
 }
 
-// ToUint64 casts an interface{} to an uint64.
+// ToUint64 casts an any to an uint64.
 // When type is clear, it is recommended to use standard library functions.
-func ToUint64(i interface{}) uint64 {
+func ToUint64(i any) uint64 {
 	v, _ := ToUint64E(i)
 	return v
 }
 
-// ToUint64E casts an interface{} to an uint64.
+// ToUint64E casts an any to an uint64.
 // When type is clear, it is recommended to use standard library functions.
-func ToUint64E(i interface{}) (uint64, error) {
+func ToUint64E(i any) (uint64, error) {
 	switch s := i.(type) {
 	case nil:
 		return 0, nil

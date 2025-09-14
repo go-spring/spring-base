@@ -31,7 +31,7 @@ func BenchmarkToTime(b *testing.B) {
 		format := "2006-01-02 15:04:05 -0700"
 		v := time.Now().Format(format)
 		b.Run("parse", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := time.Parse(format, v)
 				if err != nil {
 					b.Fatal(err)
@@ -39,7 +39,7 @@ func BenchmarkToTime(b *testing.B) {
 			}
 		})
 		b.Run("go-spring", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := cast.ToTimeE(v, format)
 				if err != nil {
 					b.Fatal(err)

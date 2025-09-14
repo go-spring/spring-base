@@ -47,7 +47,7 @@ func Indirect(t reflect.Type) reflect.Type {
 }
 
 // FileLine returns a function's name, file name and line number.
-func FileLine(fn interface{}) (file string, line int, fnName string) {
+func FileLine(fn any) (file string, line int, fnName string) {
 
 	fnPtr := reflect.ValueOf(fn).Pointer()
 	fnInfo := runtime.FuncForPC(fnPtr)

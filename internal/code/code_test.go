@@ -101,7 +101,7 @@ func f7(t *testing.T) ([]string, time.Duration) {
 }
 
 func TestFileLine(t *testing.T) {
-	for i := 0; i < 5; i++ {
+	for i := range 5 {
 		fmt.Printf("loop %d\n", i)
 		ret, cost := f1(t)
 		fmt.Println("\t", ret)

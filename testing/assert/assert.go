@@ -81,9 +81,7 @@ func ToPrettyString(v any) string {
 
 	typ := reflect.TypeOf(v).String()
 	typ = strings.TrimLeft(typ, "*")
-	if strings.HasPrefix(s, typ) {
-		return strings.TrimPrefix(s, typ)
-	}
+	s, _ = strings.CutPrefix(s, typ)
 	return s
 }
 

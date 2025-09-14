@@ -71,7 +71,7 @@ func TestReflectInt64(t *testing.T) {
 		addr := reflect.ValueOf(&s).Elem().Field(0).Addr()
 		v, ok := addr.Interface().(*atomic.Int64)
 		assert.True(t, ok)
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			v.Add(1)
 		}
 	}()
@@ -80,7 +80,7 @@ func TestReflectInt64(t *testing.T) {
 		addr := reflect.ValueOf(&s).Elem().Field(0).Addr()
 		v, ok := addr.Interface().(*atomic.Int64)
 		assert.True(t, ok)
-		for i := 0; i < 10; i++ {
+		for range 10 {
 			v.Add(2)
 		}
 	}()

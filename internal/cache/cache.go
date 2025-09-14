@@ -79,7 +79,7 @@ func ExpireAfterWrite(v time.Duration) Option {
 }
 
 // Loader gets value from a background, such as Redis, MySQL, etc.
-type Loader func(ctx context.Context, key string) (interface{}, error)
+type Loader func(ctx context.Context, key string) (any, error)
 
 // Load loads value from cache, if there is no cached value, call the loader
 // to get value, and then stores it.

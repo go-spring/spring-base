@@ -27,44 +27,44 @@ func Int16Ptr(s int16) *int16 { return &s }
 func Int32Ptr(s int32) *int32 { return &s }
 func Int64Ptr(s int64) *int64 { return &s }
 
-// ToInt casts an interface{} to an int.
+// ToInt casts an any to an int.
 // When type is clear, it is recommended to use standard library functions.
-func ToInt(i interface{}) int {
+func ToInt(i any) int {
 	v, _ := ToInt64E(i)
 	return int(v)
 }
 
-// ToInt8 casts an interface{} to an int8.
+// ToInt8 casts an any to an int8.
 // When type is clear, it is recommended to use standard library functions.
-func ToInt8(i interface{}) int8 {
+func ToInt8(i any) int8 {
 	v, _ := ToInt64E(i)
 	return int8(v)
 }
 
-// ToInt16 casts an interface{} to an int16.
+// ToInt16 casts an any to an int16.
 // When type is clear, it is recommended to use standard library functions.
-func ToInt16(i interface{}) int16 {
+func ToInt16(i any) int16 {
 	v, _ := ToInt64E(i)
 	return int16(v)
 }
 
-// ToInt32 casts an interface{} to an int32.
+// ToInt32 casts an any to an int32.
 // When type is clear, it is recommended to use standard library functions.
-func ToInt32(i interface{}) int32 {
+func ToInt32(i any) int32 {
 	v, _ := ToInt64E(i)
 	return int32(v)
 }
 
-// ToInt64 casts an interface{} to an int64.
+// ToInt64 casts an any to an int64.
 // When type is clear, it is recommended to use standard library functions.
-func ToInt64(i interface{}) int64 {
+func ToInt64(i any) int64 {
 	v, _ := ToInt64E(i)
 	return v
 }
 
-// ToInt64E casts an interface{} to an int64.
+// ToInt64E casts an any to an int64.
 // When type is clear, it is recommended to use standard library functions.
-func ToInt64E(i interface{}) (int64, error) {
+func ToInt64E(i any) (int64, error) {
 	switch s := i.(type) {
 	case nil:
 		return 0, nil

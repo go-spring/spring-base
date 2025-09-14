@@ -56,12 +56,12 @@ func TestKnife(t *testing.T) {
 	assert.Equal(t, v, "b")
 
 	{
-		var keys []interface{}
-		knife.Range(ctx, func(key, value interface{}) bool {
+		var keys []any
+		knife.Range(ctx, func(key, value any) bool {
 			keys = append(keys, key)
 			return true
 		})
-		assert.Equal(t, keys, []interface{}{"a"})
+		assert.Equal(t, keys, []any{"a"})
 	}
 
 	ctx, cached = knife.New(ctx)
@@ -73,34 +73,34 @@ func TestKnife(t *testing.T) {
 
 	knife.Delete(ctx, "a")
 	{
-		var keys []interface{}
-		knife.Range(ctx, func(key, value interface{}) bool {
+		var keys []any
+		knife.Range(ctx, func(key, value any) bool {
 			keys = append(keys, key)
 			return true
 		})
-		assert.Equal(t, keys, []interface{}(nil))
+		assert.Equal(t, keys, []any(nil))
 	}
 
 	var (
 		wg sync.WaitGroup
 		m  sync.Mutex
-		r  [][]interface{}
+		r  [][]any
 	)
 	wg.Add(3)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		val := strconv.Itoa(i)
 		go func() {
 			defer wg.Done()
 			actual, loaded, _ := knife.LoadOrStore(ctx, "a", val)
 			m.Lock()
 			defer m.Unlock()
-			r = append(r, []interface{}{actual, loaded})
+			r = append(r, []any{actual, loaded})
 		}()
 	}
 	wg.Wait()
 	{
 		count := 0
-		var actual interface{}
+		var actual any
 		for i := 0; i < len(r); i++ {
 			if r[i][1] == true {
 				actual = r[i][0]

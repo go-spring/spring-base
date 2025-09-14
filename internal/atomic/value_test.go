@@ -33,7 +33,7 @@ func TestValue(t *testing.T) {
 	x.Store(s1)
 	assert.Equal(t, x.Load(), s1)
 
-	x.SetMarshalJSON(func(i interface{}) ([]byte, error) {
+	x.SetMarshalJSON(func(i any) ([]byte, error) {
 		s := i.(*properties)
 		return json.Marshal(s)
 	})

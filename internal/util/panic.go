@@ -22,7 +22,7 @@ import (
 
 // PanicCond panic condition.
 type PanicCond struct {
-	fn func() interface{}
+	fn func() any
 }
 
 // When throws a panic when `isPanic` is true.
@@ -33,16 +33,16 @@ func (p *PanicCond) When(isPanic bool) {
 }
 
 // NewPanicCond returns a panic condition.
-func NewPanicCond(fn func() interface{}) *PanicCond {
+func NewPanicCond(fn func() any) *PanicCond {
 	return &PanicCond{fn}
 }
 
 // Panic returns a panic condition that throws an error.
-func Panic(err interface{}) *PanicCond {
-	return NewPanicCond(func() interface{} { return err })
+func Panic(err any) *PanicCond {
+	return NewPanicCond(func() any { return err })
 }
 
 // Panicf returns a panic condition that throws a formatted error.
-func Panicf(format string, a ...interface{}) *PanicCond {
-	return NewPanicCond(func() interface{} { return fmt.Errorf(format, a...) })
+func Panicf(format string, a ...any) *PanicCond {
+	return NewPanicCond(func() any { return fmt.Errorf(format, a...) })
 }

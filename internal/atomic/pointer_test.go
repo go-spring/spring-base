@@ -38,7 +38,7 @@ func BenchmarkPointer(b *testing.B) {
 
 	b.Run("pointer", func(b *testing.B) {
 		var p atomic.Pointer
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			p.Store(unsafe.Pointer(&properties{Data: 1}))
 			prop := (*properties)(p.Load())
 			if prop.Data != 1 {
@@ -49,7 +49,7 @@ func BenchmarkPointer(b *testing.B) {
 
 	b.Run("value", func(b *testing.B) {
 		var p atomic.Value
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			p.Store(&properties{Data: 2})
 			prop := p.Load().(*properties)
 			if prop.Data != 2 {

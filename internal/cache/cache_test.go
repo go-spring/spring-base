@@ -34,7 +34,7 @@ type response struct {
 
 type injection struct {
 	expire time.Duration
-	resp   interface{}
+	resp   any
 	data   *response
 	err    error
 }
@@ -52,7 +52,7 @@ func setInjection(ctx context.Context, i *injection) context.Context {
 func loadResponse(ctx context.Context, key string, delay time.Duration) (*response, cache.LoadType, error) {
 
 	i := getInjection(ctx)
-	loader := func(ctx context.Context, key string) (interface{}, error) {
+	loader := func(ctx context.Context, key string) (any, error) {
 		if delay > 0 {
 			time.Sleep(delay)
 		}
@@ -91,17 +91,17 @@ func (p LoadTypeSlice) Len() int           { return len(p) }
 func (p LoadTypeSlice) Less(i, j int) bool { return p[i] > p[j] }
 func (p LoadTypeSlice) Swap(i, j int)      { p[i], p[j] = p[j], p[i] }
 
-func testFunc(key string, i *injection) ([]interface{}, []cache.LoadType) {
+func testFunc(key string, i *injection) ([]any, []cache.LoadType) {
 	ctx := setInjection(context.Background(), i)
 
 	var (
-		datas []interface{}
+		datas []any
 		types []cache.LoadType
 		lock  sync.Mutex
 	)
 
 	wg := sync.WaitGroup{}
-	for j := 0; j < 3; j++ {
+	for j := range 3 {
 		jj := j
 		delay := 10 * time.Millisecond
 		wg.Add(1)
@@ -145,7 +145,7 @@ func TestCache(t *testing.T) {
 				err: errors.New("this is an error"),
 			}
 			datas, types := testFunc(testKey, i)
-			assert.Equal(t, datas, []interface{}{
+			assert.Equal(t, datas, []any{
 				errors.New("this is an error"),
 				errors.New("this is an error"),
 				errors.New("this is an error"),
@@ -169,7 +169,7 @@ func TestCache(t *testing.T) {
 				data:   &response{},
 			}
 			datas, types := testFunc(testKey, i)
-			assert.Equal(t, datas, []interface{}{
+			assert.Equal(t, datas, []any{
 				&response{name: testKey},
 				&response{name: testKey},
 				&response{name: testKey},
@@ -194,7 +194,7 @@ func TestCache(t *testing.T) {
 				data: &response{},
 			}
 			datas, types := testFunc(testKey, i)
-			assert.Equal(t, datas, []interface{}{
+			assert.Equal(t, datas, []any{
 				&response{name: testKey},
 				&response{name: testKey},
 				&response{name: testKey},
@@ -218,7 +218,7 @@ func TestCache(t *testing.T) {
 				data: &response{},
 			}
 			datas, types := testFunc(testKey, i)
-			assert.Equal(t, datas, []interface{}{
+			assert.Equal(t, datas, []any{
 				errors.New("load type (int) but expect type (*cache_test.response)"),
 				errors.New("load type (int) but expect type (*cache_test.response)"),
 				errors.New("load type (int) but expect type (*cache_test.response)"),

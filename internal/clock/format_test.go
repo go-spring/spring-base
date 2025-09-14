@@ -29,13 +29,13 @@ func BenchmarkFormat(b *testing.B) {
 	// BenchmarkFormat/custom-8 2654034 442.3 ns/op
 	b.Run("time", func(b *testing.B) {
 		now := time.Now()
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			now.Format("2006-01-02 15:04:05")
 		}
 	})
 	b.Run("go-spring", func(b *testing.B) {
 		now := time.Now()
-		for i := 0; i < b.N; i++ {
+		for b.Loop() {
 			clock.Format(now, "yyyy-MM-dd H:m:s")
 		}
 	})

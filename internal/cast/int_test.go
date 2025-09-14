@@ -31,7 +31,7 @@ func BenchmarkToInt(b *testing.B) {
 	b.Run("string", func(b *testing.B) {
 		v := "10"
 		b.Run("strconv", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := strconv.ParseInt(v, 0, 0)
 				if err != nil {
 					b.Fatal(err)
@@ -39,7 +39,7 @@ func BenchmarkToInt(b *testing.B) {
 			}
 		})
 		b.Run("go-spring", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := cast.ToInt64E(v)
 				if err != nil {
 					b.Fatal(err)

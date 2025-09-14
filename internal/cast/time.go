@@ -30,16 +30,16 @@ var unitMap = map[string]int64{
 	"h":  int64(time.Hour),
 }
 
-// ToTime casts an interface{} to a time.Time.
+// ToTime casts an any to a time.Time.
 // When type is clear, it is recommended to use standard library functions.
-func ToTime(i interface{}, format ...string) time.Time {
+func ToTime(i any, format ...string) time.Time {
 	v, _ := ToTimeE(i, format...)
 	return v
 }
 
-// ToTimeE casts an interface{} to a time.Time.
+// ToTimeE casts an any to a time.Time.
 // When type is clear, it is recommended to use standard library functions.
-func ToTimeE(i interface{}, format ...string) (time.Time, error) {
+func ToTimeE(i any, format ...string) (time.Time, error) {
 	switch v := i.(type) {
 	case nil:
 		return time.Time{}, nil

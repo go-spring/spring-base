@@ -33,12 +33,12 @@ func BenchmarkToString(b *testing.B) {
 	b.Run("int", func(b *testing.B) {
 		v := 10
 		b.Run("strconv", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_ = strconv.Itoa(v)
 			}
 		})
 		b.Run("go-spring", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := cast.ToStringE(v)
 				if err != nil {
 					b.Fatal(err)

@@ -24,23 +24,23 @@ import (
 func Float32Ptr(s float32) *float32 { return &s }
 func Float64Ptr(s float64) *float64 { return &s }
 
-// ToFloat32 casts an interface{} to a float32.
+// ToFloat32 casts an any to a float32.
 // When type is clear, it is recommended to use standard library functions.
-func ToFloat32(i interface{}) float32 {
+func ToFloat32(i any) float32 {
 	v, _ := ToFloat64E(i)
 	return float32(v)
 }
 
-// ToFloat64 casts an interface{} to a float64.
+// ToFloat64 casts an any to a float64.
 // When type is clear, it is recommended to use standard library functions.
-func ToFloat64(i interface{}) float64 {
+func ToFloat64(i any) float64 {
 	v, _ := ToFloat64E(i)
 	return v
 }
 
-// ToFloat64E casts an interface{} to a float64.
+// ToFloat64E casts an any to a float64.
 // When type is clear, it is recommended to use standard library functions.
-func ToFloat64E(i interface{}) (float64, error) {
+func ToFloat64E(i any) (float64, error) {
 	switch s := i.(type) {
 	case nil:
 		return 0, nil

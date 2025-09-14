@@ -27,11 +27,11 @@ func TestString_EqualFold(t *testing.T) {
 		assert.String(g, "hello, world!").EqualFold("Hello, World!")
 	})
 	runCase(t, func(g *assert.MockT) {
-		g.EXPECT().Error([]interface{}{"'hello, world!' doesn't equal fold to 'xxx'"})
+		g.EXPECT().Error([]any{"'hello, world!' doesn't equal fold to 'xxx'"})
 		assert.String(g, "hello, world!").EqualFold("xxx")
 	})
 	runCase(t, func(g *assert.MockT) {
-		g.EXPECT().Error([]interface{}{"'hello, world!' doesn't equal fold to 'xxx'; param (index=0)"})
+		g.EXPECT().Error([]any{"'hello, world!' doesn't equal fold to 'xxx'; param (index=0)"})
 		assert.String(g, "hello, world!").EqualFold("xxx", "param (index=0)")
 	})
 }
@@ -41,11 +41,11 @@ func TestString_HasPrefix(t *testing.T) {
 		assert.String(g, "hello, world!").HasPrefix("hello")
 	})
 	runCase(t, func(g *assert.MockT) {
-		g.EXPECT().Error([]interface{}{"'hello, world!' doesn't have prefix 'xxx'"})
+		g.EXPECT().Error([]any{"'hello, world!' doesn't have prefix 'xxx'"})
 		assert.String(g, "hello, world!").HasPrefix("xxx")
 	})
 	runCase(t, func(g *assert.MockT) {
-		g.EXPECT().Error([]interface{}{"'hello, world!' doesn't have prefix 'xxx'; param (index=0)"})
+		g.EXPECT().Error([]any{"'hello, world!' doesn't have prefix 'xxx'; param (index=0)"})
 		assert.String(g, "hello, world!").HasPrefix("xxx", "param (index=0)")
 	})
 }
@@ -55,11 +55,11 @@ func TestString_HasSuffix(t *testing.T) {
 		assert.String(g, "hello, world!").HasSuffix("world!")
 	})
 	runCase(t, func(g *assert.MockT) {
-		g.EXPECT().Error([]interface{}{"'hello, world!' doesn't have suffix 'xxx'"})
+		g.EXPECT().Error([]any{"'hello, world!' doesn't have suffix 'xxx'"})
 		assert.String(g, "hello, world!").HasSuffix("xxx")
 	})
 	runCase(t, func(g *assert.MockT) {
-		g.EXPECT().Error([]interface{}{"'hello, world!' doesn't have suffix 'xxx'; param (index=0)"})
+		g.EXPECT().Error([]any{"'hello, world!' doesn't have suffix 'xxx'; param (index=0)"})
 		assert.String(g, "hello, world!").HasSuffix("xxx", "param (index=0)")
 	})
 }
@@ -69,11 +69,11 @@ func TestString_Contains(t *testing.T) {
 		assert.String(g, "hello, world!").Contains("hello")
 	})
 	runCase(t, func(g *assert.MockT) {
-		g.EXPECT().Error([]interface{}{"'hello, world!' doesn't contain substr 'xxx'"})
+		g.EXPECT().Error([]any{"'hello, world!' doesn't contain substr 'xxx'"})
 		assert.String(g, "hello, world!").Contains("xxx")
 	})
 	runCase(t, func(g *assert.MockT) {
-		g.EXPECT().Error([]interface{}{"'hello, world!' doesn't contain substr 'xxx'; param (index=0)"})
+		g.EXPECT().Error([]any{"'hello, world!' doesn't contain substr 'xxx'; param (index=0)"})
 		assert.String(g, "hello, world!").Contains("xxx", "param (index=0)")
 	})
 }

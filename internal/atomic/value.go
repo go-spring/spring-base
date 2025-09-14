@@ -20,7 +20,7 @@ import (
 	"sync/atomic"
 )
 
-type MarshalValue func(interface{}) ([]byte, error)
+type MarshalValue func(any) ([]byte, error)
 
 // A Value provides an atomic load and store of a consistently typed value.
 type Value struct {

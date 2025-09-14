@@ -32,14 +32,14 @@ type ConversionArg struct {
 }
 
 // Convert converts src to dest using fast encoding.
-func (e *fastEncoding) Convert(src interface{}, dest interface{}, arg ...ConversionArg) error {
+func (e *fastEncoding) Convert(src any, dest any, arg ...ConversionArg) error {
 	return nil
 }
 
 type jsonEncoding struct{}
 
 // Convert converts src to dest using json encoding.
-func (e *jsonEncoding) Convert(src interface{}, dest interface{}) error {
+func (e *jsonEncoding) Convert(src any, dest any) error {
 	b, err := json.Marshal(src)
 	if err != nil {
 		return err

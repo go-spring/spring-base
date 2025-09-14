@@ -25,16 +25,16 @@ import (
 
 func StringPtr(s string) *string { return &s }
 
-// ToString casts an interface{} to a string.
+// ToString casts an any to a string.
 // When type is clear, it is recommended to use standard library functions.
-func ToString(i interface{}) string {
+func ToString(i any) string {
 	v, _ := ToStringE(i)
 	return v
 }
 
-// ToStringE casts an interface{} to a string.
+// ToStringE casts an any to a string.
 // When type is clear, it is recommended to use standard library functions.
-func ToStringE(i interface{}) (string, error) {
+func ToStringE(i any) (string, error) {
 	switch s := i.(type) {
 	case nil:
 		return "", nil

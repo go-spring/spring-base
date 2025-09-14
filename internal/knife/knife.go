@@ -46,7 +46,7 @@ func New(ctx context.Context) (_ context.Context, cached bool) {
 
 // Load returns the value stored for a key, or nil if no value is present.
 // If knife is uninitialized, the error of knife uninitialized will be returned.
-func Load(ctx context.Context, key string) (interface{}, error) {
+func Load(ctx context.Context, key string) (any, error) {
 	m, ok := cache(ctx)
 	if !ok {
 		return nil, errUninitialized
@@ -58,7 +58,7 @@ func Load(ctx context.Context, key string) (interface{}, error) {
 // Store stores the key and value in the context.Context, if the key is already
 // in the context.Context, the error of duplicate key will be returned.
 // If knife is uninitialized, the error of knife uninitialized will be returned.
-func Store(ctx context.Context, key string, val interface{}) error {
+func Store(ctx context.Context, key string, val any) error {
 	m, ok := cache(ctx)
 	if !ok {
 		return errUninitialized
@@ -73,7 +73,7 @@ func Store(ctx context.Context, key string, val interface{}) error {
 // stores and returns the given value. The loaded result is true if the value was
 // loaded, false if stored.
 // If knife is uninitialized, the error of knife uninitialized will be returned.
-func LoadOrStore(ctx context.Context, key string, val interface{}) (actual interface{}, loaded bool, err error) {
+func LoadOrStore(ctx context.Context, key string, val any) (actual any, loaded bool, err error) {
 	m, ok := cache(ctx)
 	if !ok {
 		return nil, false, errUninitialized
@@ -90,7 +90,7 @@ func Delete(ctx context.Context, key string) {
 }
 
 // Range calls f sequentially for each key and value.
-func Range(ctx context.Context, f func(key, value interface{}) bool) {
+func Range(ctx context.Context, f func(key, value any) bool) {
 	if m, ok := cache(ctx); ok {
 		m.Range(f)
 	}

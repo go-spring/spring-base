@@ -23,13 +23,9 @@ type HashFunc func(key string) int
 
 var (
 	SimpleHash HashFunc = func(key string) int {
-		const max = 20
-		n := len(key)
-		if n > max {
-			n = max
-		}
+		n := min(len(key), 20)
 		c := 0
-		for i := 0; i < n; i++ {
+		for i := range n {
 			c += int(key[i])
 		}
 		return c

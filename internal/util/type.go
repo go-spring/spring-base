@@ -31,7 +31,7 @@ var errorType = reflect.TypeOf((*error)(nil)).Elem()
 var contextType = reflect.TypeOf((*context.Context)(nil)).Elem()
 
 // TypeName returns a fully qualified name consisting of package path and type name.
-func TypeName(i interface{}) string {
+func TypeName(i any) string {
 
 	var typ reflect.Type
 	switch o := i.(type) {
@@ -60,13 +60,13 @@ func TypeName(i interface{}) string {
 
 // A BeanSelector can be the ID of a bean, a `reflect.Type`, a pointer such as
 // `(*error)(nil)`, or a BeanDefinition value.
-type BeanSelector interface{}
+type BeanSelector any
 
 // A BeanDefinition describes a bean whose lifecycle is managed by IoC container.
 type BeanDefinition interface {
 	Type() reflect.Type
 	Value() reflect.Value
-	Interface() interface{}
+	Interface() any
 	ID() string
 	BeanName() string
 	TypeName() string
@@ -76,7 +76,7 @@ type BeanDefinition interface {
 
 // Converter converts string value into user-defined value. It should be function
 // type, and its prototype is func(string)(type,error).
-type Converter interface{}
+type Converter any
 
 // IsConverter returns whether `t` is a converter type.
 func IsConverter(t reflect.Type) bool {

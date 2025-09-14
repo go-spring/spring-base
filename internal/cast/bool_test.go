@@ -31,7 +31,7 @@ func BenchmarkToBool(b *testing.B) {
 	b.Run("string", func(b *testing.B) {
 		v := "true"
 		b.Run("strconv", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := strconv.ParseBool(v)
 				if err != nil {
 					b.Fatal(err)
@@ -39,7 +39,7 @@ func BenchmarkToBool(b *testing.B) {
 			}
 		})
 		b.Run("go-spring", func(b *testing.B) {
-			for i := 0; i < b.N; i++ {
+			for b.Loop() {
 				_, err := cast.ToBoolE(v)
 				if err != nil {
 					b.Fatal(err)
