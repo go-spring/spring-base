@@ -24,11 +24,14 @@ import (
 )
 
 // FlattenMap takes a nested map[string]any and flattens it into a
-// map[string]string where nested structures are represented using
-// dot-notation for maps and index-notation for slices/arrays.
-// Nil values in maps are skipped (not included in the result).
-// Nil elements in slices/arrays are preserved as empty strings.
-// Empty maps/slices are represented as empty strings.
+// map[string]string. Nested maps are represented using dot-notation
+// (e.g. "parent.child"), and slices/arrays are represented using index-notation
+// (e.g. "array[0]"). The following rules apply:
+//   - Nil values (both untyped and typed nil) are represented as "<nil>".
+//   - Nil elements in slices/arrays are preserved and represented as "<nil>".
+//   - Empty maps are represented as "{}".
+//   - Empty slices/arrays are represented as "[]".
+//   - All primitive values are converted to strings using cast.ToString.
 func FlattenMap(m map[string]any) map[string]string {
 	result := make(map[string]string)
 	for key, val := range m {
@@ -41,13 +44,18 @@ func FlattenMap(m map[string]any) map[string]string {
 // into the result map under the given key. Nested structures are expanded
 // using dot notation (for maps) and index notation (for slices/arrays).
 func FlattenValue(key string, val any, result map[string]string) {
-	if val == nil {
+	if val == nil { // untyped nil
+		result[key] = "<nil>"
 		return
 	}
 	switch v := reflect.ValueOf(val); v.Kind() {
 	case reflect.Map:
-		if v.Len() == 0 {
-			result[key] = ""
+		if v.IsNil() { // typed nil map
+			result[key] = "<nil>"
+			return
+		}
+		if v.Len() == 0 { // empty map
+			result[key] = "{}"
 			return
 		}
 		iter := v.MapRange()
@@ -56,20 +64,20 @@ func FlattenValue(key string, val any, result map[string]string) {
 			mapValue := iter.Value().Interface()
 			FlattenValue(key+"."+mapKey, mapValue, result)
 		}
-	case reflect.Array, reflect.Slice:
-		if v.Len() == 0 {
-			result[key] = ""
+	case reflect.Slice:
+		if v.IsNil() { // typed nil slice
+			result[key] = "<nil>"
+			return
+		}
+		fallthrough
+	case reflect.Array:
+		if v.Len() == 0 { // empty slice/array
+			result[key] = "[]"
 			return
 		}
 		for i := range v.Len() {
 			subKey := fmt.Sprintf("%s[%d]", key, i)
 			subValue := v.Index(i).Interface()
-			// If an element is nil, treat it as an empty value and assign an empty string.
-			// Note: We do not remove the nil element to avoid changing the array's size.
-			if subValue == nil {
-				result[subKey] = ""
-				continue
-			}
 			FlattenValue(subKey, subValue, result)
 		}
 	default:

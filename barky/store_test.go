@@ -383,4 +383,84 @@ func TestStorage(t *testing.T) {
 			"third.go":  2,
 		})
 	})
+
+	t.Run("flatten & store", func(t *testing.T) {
+		m := FlattenMap(map[string]any{
+			"arr": []any{
+				"abc",
+				"def",
+				map[string]any{
+					"a": "123",
+					"b": "456",
+				},
+				nil,
+				([]any)(nil),
+				(map[string]string)(nil),
+				[]any{},
+				map[string]string{},
+			},
+			"map": map[string]any{
+				"a": "123",
+				"b": "456",
+				"arr": []string{
+					"abc",
+					"def",
+				},
+				"nil":       nil,
+				"nil_arr":   []any(nil),
+				"nil_map":   map[string]string(nil),
+				"empty_arr": []any{},
+				"empty_map": map[string]string{},
+			},
+			"nil":       nil,
+			"nil_arr":   []any(nil),
+			"nil_map":   map[string]string(nil),
+			"empty_arr": []any{},
+			"empty_map": map[string]string{},
+		})
+		s := NewStorage()
+		for k, v := range m {
+			err := s.Set(k, v, 0)
+			assert.ThatError(t, err).Nil()
+		}
+
+		assert.That(t, s.Get("arr[0]")).Equal("abc")
+		assert.That(t, s.Get("arr[1]")).Equal("def")
+		assert.That(t, s.Get("arr[2].a")).Equal("123")
+		assert.That(t, s.Get("arr[2].b")).Equal("456")
+		assert.That(t, s.Get("arr[3]")).Equal("")
+		assert.That(t, s.Get("arr[4]")).Equal("")
+		assert.That(t, s.Get("arr[5]")).Equal("")
+		assert.That(t, s.Get("arr[6]")).Equal("")
+		assert.That(t, s.Get("arr[7]")).Equal("")
+		assert.That(t, s.Get("map.a")).Equal("123")
+		assert.That(t, s.Get("map.b")).Equal("456")
+		assert.That(t, s.Get("map.arr[0]")).Equal("abc")
+		assert.That(t, s.Get("map.arr[1]")).Equal("def")
+		assert.That(t, s.Get("map.empty_arr")).Equal("")
+		assert.That(t, s.Get("map.empty_map")).Equal("")
+
+		assert.That(t, s.Has("nil")).True()
+		assert.That(t, s.Has("nil_arr")).True()
+		assert.That(t, s.Has("nil_map")).True()
+		assert.That(t, s.Has("map.nil")).True()
+		assert.That(t, s.Has("map.nil_arr")).True()
+		assert.That(t, s.Has("map.nil_map")).True()
+
+		subKeys, err := s.SubKeys("arr")
+		assert.That(t, err).Nil()
+		assert.That(t, subKeys).Equal([]string{"0", "1", "2", "3", "4", "5", "6", "7"})
+
+		subKeys, err = s.SubKeys("arr[2]")
+		assert.That(t, err).Nil()
+		assert.That(t, subKeys).Equal([]string{"a", "b"})
+
+		subKeys, err = s.SubKeys("map")
+		assert.That(t, err).Nil()
+		assert.That(t, subKeys).Equal([]string{"a", "arr", "b", "empty_arr", "empty_map", "nil", "nil_arr", "nil_map"})
+
+		subKeys, err = s.SubKeys("map.arr")
+		assert.That(t, err).Nil()
+		assert.That(t, subKeys).Equal([]string{"0", "1"})
+	})
 }

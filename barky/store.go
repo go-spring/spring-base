@@ -160,6 +160,11 @@ func (s *Storage) SubKeys(key string) (_ []string, err error) {
 		return nil, nil
 	}
 
+	// `data` only stores leaf values, `root` only stores paths.
+	if _, ok := s.data[key]; ok {
+		return nil, fmt.Errorf("property conflict at path %s", key)
+	}
+
 	n := s.root
 	for i, pathNode := range path {
 		if n == nil || pathNode.Type != n.Type {
@@ -173,9 +178,8 @@ func (s *Storage) SubKeys(key string) (_ []string, err error) {
 	}
 
 	if n == nil {
-		return nil, fmt.Errorf("property conflict at path %s", key)
+		return nil, nil
 	}
-
 	return OrderedMapKeys(n.Data), nil
 }
 
@@ -186,6 +190,7 @@ func (s *Storage) Has(key string) bool {
 		return false
 	}
 
+	// `data` only stores leaf values, `root` only stores paths.
 	if _, ok := s.data[key]; ok {
 		return true
 	}
@@ -262,7 +267,12 @@ func (s *Storage) Set(key string, val string, file int8) error {
 		return fmt.Errorf("property conflict at path %s", key)
 	}
 
-	s.data[key] = ValueInfo{file, val}
+	// `data` only stores leaf values, `root` only stores paths.
+	switch val {
+	case "[]", "{}", "<nil>":
+	default:
+		s.data[key] = ValueInfo{file, val}
+	}
 	return nil
 }
 
