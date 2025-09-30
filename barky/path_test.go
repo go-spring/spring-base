@@ -55,22 +55,22 @@ func TestPath(t *testing.T) {
 		{
 			name: "unmatched opening bracket",
 			key:  "[",
-			err:  "invalid key \"[\" at pos 0: unclosed '['",
+			err:  "invalid key \"\\[\" at pos 0: unclosed '\\['",
 		},
 		{
 			name: "unmatched closing bracket",
 			key:  "]",
-			err:  "invalid key \"]\" at pos 0: ']' without matching '['",
+			err:  "invalid key \"\\]\" at pos 0: '\\]' without matching '\\['",
 		},
 		{
 			name: "empty brackets",
 			key:  "[]",
-			err:  "invalid key \"[]\" at pos 1: empty index",
+			err:  "invalid key \"\\[\\]\" at pos 1: empty index",
 		},
 		{
 			name: "invalid index",
 			key:  "[a]",
-			err:  "invalid key \"[a]\" at pos 1: index must be an unsigned integer (got \"a\")",
+			err:  "invalid key \"\\[a\\]\" at pos 1: index must be an unsigned integer \\(got \"a\"\\)",
 		},
 		{
 			name: "dot after key",
@@ -85,32 +85,32 @@ func TestPath(t *testing.T) {
 		{
 			name: "unmatched opening bracket in path",
 			key:  "a[",
-			err:  "invalid key \"a[\" at pos 1: unclosed '['",
+			err:  "invalid key \"a\\[\" at pos 1: unclosed '\\['",
 		},
 		{
 			name: "unmatched closing bracket in path",
 			key:  "a]",
-			err:  "invalid key \"a]\" at pos 1: ']' without matching '['",
+			err:  "invalid key \"a\\]\" at pos 1: '\\]' without matching '\\['",
 		},
 		{
 			name: "dot after bracket",
 			key:  "a.[0]",
-			err:  "invalid key \"a.[0]\" at pos 2: '[' cannot directly follow '.'",
+			err:  "invalid key \"a.\\[0\\]\" at pos 2: '\\[' cannot directly follow '.'",
 		},
 		{
 			name: "dot after closing bracket",
 			key:  "a[0]..b",
-			err:  "invalid key \"a[0]..b\" at pos 5: empty key between dots",
+			err:  "invalid key \"a\\[0\\]..b\" at pos 5: empty key between dots",
 		},
 		{
 			name: "characters after closing bracket",
 			key:  "a[0]b",
-			err:  "invalid key \"a[0]b\" at pos 4: unexpected character 'b' after ']'",
+			err:  "invalid key \"a\\[0\\]b\" at pos 4: unexpected character 'b' after '\\]'",
 		},
 		{
 			name: "negative index",
 			key:  "[-1]",
-			err:  "invalid key \"[-1]\" at pos 1: index must be an unsigned integer (got \"-1\")",
+			err:  "invalid key \"\\[-1\\]\" at pos 1: index must be an unsigned integer \\(got \"-1\"\\)",
 		},
 		{
 			name: "dot inside brackets",
@@ -120,12 +120,12 @@ func TestPath(t *testing.T) {
 		{
 			name: "nested opening bracket",
 			key:  "a[[0]]",
-			err:  "nested '['",
+			err:  "nested '\\['",
 		},
 		{
 			name: "index overflow",
 			key:  "a[18446744073709551616]", // uint64 max + 1
-			err:  "index must be an unsigned integer (got \"18446744073709551616\")",
+			err:  "index must be an unsigned integer \\(got \"18446744073709551616\"\\)",
 		},
 
 		// Valid cases
@@ -209,7 +209,7 @@ func TestPath(t *testing.T) {
 			p, err := SplitPath(tc.key)
 			if tc.err != "" {
 				assert.That(t, err).NotNil()
-				assert.ThatString(t, err.Error()).Contains(tc.err)
+				assert.Error(t, err).Matches(tc.err)
 				return
 			}
 
@@ -311,13 +311,13 @@ func TestPath(t *testing.T) {
 	t.Run("appendKey/empty key", func(t *testing.T) {
 		_, err := appendKey([]Path{}, "")
 		assert.That(t, err).NotNil()
-		assert.ThatString(t, err.Error()).Equal("empty key segment")
+		assert.Error(t, err).Matches("empty key segment")
 	})
 
 	t.Run("appendKey/key with space", func(t *testing.T) {
 		_, err := appendKey([]Path{}, "key with space")
 		assert.That(t, err).NotNil()
-		assert.ThatString(t, err.Error()).Contains("contains space")
+		assert.Error(t, err).Matches("contains space")
 	})
 
 	t.Run("appendKey/append to existing path", func(t *testing.T) {
@@ -341,19 +341,19 @@ func TestPath(t *testing.T) {
 	t.Run("appendIndex/empty index", func(t *testing.T) {
 		_, err := appendIndex([]Path{}, "")
 		assert.That(t, err).NotNil()
-		assert.ThatString(t, err.Error()).Contains("empty index")
+		assert.Error(t, err).Matches("empty index")
 	})
 
 	t.Run("appendIndex/invalid index", func(t *testing.T) {
 		_, err := appendIndex([]Path{}, "abc")
 		assert.That(t, err).NotNil()
-		assert.ThatString(t, err.Error()).Contains("index must be an unsigned integer")
+		assert.Error(t, err).Matches("index must be an unsigned integer")
 	})
 
 	t.Run("appendIndex/negative index", func(t *testing.T) {
 		_, err := appendIndex([]Path{}, "-1")
 		assert.That(t, err).NotNil()
-		assert.ThatString(t, err.Error()).Contains("index must be an unsigned integer")
+		assert.Error(t, err).Matches("index must be an unsigned integer")
 	})
 
 	t.Run("appendIndex/large index", func(t *testing.T) {

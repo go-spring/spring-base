@@ -19,43 +19,45 @@
 package require
 
 import (
-	"github.com/go-spring/spring-base/testing/assert"
 	"github.com/go-spring/spring-base/testing/internal"
 )
 
-// Panic asserts that fn panics and the panic message matches expr.
-// It reports an error if fn does not panic or if the recovered message does not satisfy expr.
+// fatalOnFailure indicates whether to stop the test when an assertion fails.
+const fatalOnFailure = true
+
+// Panic asserts that `fn` panics and the panic message matches `expr`.
+// It reports an error if `fn` does not panic or if the recovered message does not satisfy `expr`.
 func Panic(t internal.TestingT, fn func(), expr string, msg ...string) {
 	t.Helper()
-	internal.Panic(t, true, fn, expr, msg...)
+	internal.Panic(t, fatalOnFailure, fn, expr, msg...)
 }
 
 // That creates an Assertion for the given value v and test context t.
-func That(t internal.TestingT, v any) *assert.Assertion {
-	return assert.That(t, v).Require()
+func That(t internal.TestingT, v any) *internal.Assertion {
+	return internal.That(t, v, fatalOnFailure)
 }
 
-// ThatString returns a StringAssertion for the given testing object and string value.
-func ThatString(t internal.TestingT, v string) *assert.StringAssertion {
-	return assert.ThatString(t, v).Require()
+// Error returns a new ErrorAssertion for the given error value.
+func Error(t internal.TestingT, v error) *internal.ErrorAssertion {
+	return internal.ThatError(t, v, fatalOnFailure)
 }
 
-// ThatNumber returns a NumberAssertion for the given testing object and number value.
-func ThatNumber[T assert.Number](t internal.TestingT, v T) *assert.NumberAssertion[T] {
-	return assert.ThatNumber[T](t, v).Require()
+// Number returns a NumberAssertion for the given testing object and number value.
+func Number[T internal.Number](t internal.TestingT, v T) *internal.NumberAssertion[T] {
+	return internal.ThatNumber(t, v, fatalOnFailure)
 }
 
-// ThatError returns a new ErrorAssertion for the given error value.
-func ThatError(t internal.TestingT, v error) *assert.ErrorAssertion {
-	return assert.ThatError(t, v).Require()
+// String returns a StringAssertion for the given testing object and string value.
+func String(t internal.TestingT, v string) *internal.StringAssertion {
+	return internal.ThatString(t, v, fatalOnFailure)
 }
 
-// ThatSlice returns a SliceAssertion for the given testing object and slice value.
-func ThatSlice[T comparable](t internal.TestingT, v []T) *assert.SliceAssertion[T] {
-	return assert.ThatSlice[T](t, v).Require()
+// Slice returns a SliceAssertion for the given testing object and slice value.
+func Slice[T comparable](t internal.TestingT, v []T) *internal.SliceAssertion[T] {
+	return internal.ThatSlice(t, v, fatalOnFailure)
 }
 
-// ThatMap returns a MapAssertion for the given testing object and map value.
-func ThatMap[K, V comparable](t internal.TestingT, v map[K]V) *assert.MapAssertion[K, V] {
-	return assert.ThatMap[K, V](t, v).Require()
+// Map returns a MapAssertion for the given testing object and map value.
+func Map[K, V comparable](t internal.TestingT, v map[K]V) *internal.MapAssertion[K, V] {
+	return internal.ThatMap(t, v, fatalOnFailure)
 }

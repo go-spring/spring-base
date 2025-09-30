@@ -1,5 +1,14 @@
 # spring-base
 
+<div>
+   <img src="https://img.shields.io/github/license/go-spring/spring-base" alt="license"/>
+   <img src="https://img.shields.io/github/go-mod/go-version/go-spring/spring-base" alt="go-version"/>
+   <img src="https://img.shields.io/github/v/release/go-spring/spring-base?include_prereleases" alt="release"/>
+   <a href="https://codecov.io/gh/go-spring/spring-base" > 
+      <img src="https://codecov.io/gh/go-spring/spring-base/graph/badge.svg?token=SX7CV1T0O8" alt="test-coverage"/>
+   </a>
+</div>
+
 > 该项目已经正式发布，欢迎使用！
 
 为 `go-spring` 框架提供基础功能支持的库集合。
@@ -7,6 +16,8 @@
 ## `barky` - 分层键值数据处理包
 
 `barky` 包提供了处理分层键值数据结构的工具，主要用于处理 `JSON`、`YAML` 或 `TOML` 等配置格式中的嵌套数据。
+
+- `flatten` - 将嵌套数据结构展开为单层结构。
 
 ## `testing` - 测试工具包
 

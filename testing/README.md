@@ -34,15 +34,15 @@ import (
 func TestSomething(t *testing.T) {
 	// Using assert - test continues on failure
 	assert.That(t, "hello").Equal("hello")
-	assert.ThatNumber(t, 42).GreaterThan(40)
+	assert.Number(t, 42).GreaterThan(40)
 
 	// Using require - test stops on failure
 	require.That(t, someValue).NotNil()
 
 	// Type-specific assertions
-	assert.ThatString(t, "user@example.com").IsEmail()
-	assert.ThatNumber(t, 100).InRange(0, 200)
-	assert.ThatSlice(t, []int{1, 2, 3}).Contains(2)
+	assert.String(t, "user@example.com").IsEmail()
+	assert.Number(t, 100).InRange(0, 200)
+	assert.Slice(t, []int{1, 2, 3}).Contains(2)
 }
 ```
 

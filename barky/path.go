@@ -17,9 +17,10 @@
 package barky
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/go-spring/spring-base/util"
 )
 
 // PathType represents the type of a path element in a hierarchical key.
@@ -84,7 +85,7 @@ func JoinPath(path []Path) string {
 //     unexpected characters, or empty keys if disallowed).
 func SplitPath(key string) (_ []Path, err error) {
 	if key == "" {
-		return nil, fmt.Errorf("invalid key: empty string")
+		return nil, util.FormatError(nil, "invalid key: empty string")
 	}
 
 	var (
@@ -97,31 +98,31 @@ func SplitPath(key string) (_ []Path, err error) {
 	for i, c := range key {
 		switch c {
 		case ' ':
-			return nil, fmt.Errorf("invalid key %q: contains space at pos %d", key, i)
+			return nil, util.FormatError(nil, "invalid key %q: contains space at pos %d", key, i)
 		case '.':
 			if openBracket {
-				return nil, fmt.Errorf("invalid key %q at pos %d: '.' not allowed inside brackets", key, i)
+				return nil, util.FormatError(nil, "invalid key %q at pos %d: '.' not allowed inside brackets", key, i)
 			}
 			if lastChar == '.' {
-				return nil, fmt.Errorf("invalid key %q at pos %d: empty key between dots", key, i)
+				return nil, util.FormatError(nil, "invalid key %q at pos %d: empty key between dots", key, i)
 			}
 			if lastChar != ']' {
 				if path, err = appendKey(path, key[lastPos:i]); err != nil {
-					return nil, fmt.Errorf("invalid key %q at pos %d: %v", key, lastPos, err)
+					return nil, util.FormatError(err, "invalid key %q at pos %d", key, lastPos)
 				}
 			}
 			lastPos = i + 1
 			lastChar = '.'
 		case '[':
 			if openBracket {
-				return nil, fmt.Errorf("invalid key %q at pos %d: nested '['", key, i)
+				return nil, util.FormatError(nil, "invalid key %q at pos %d: nested '['", key, i)
 			}
 			if lastChar == '.' {
-				return nil, fmt.Errorf("invalid key %q at pos %d: '[' cannot directly follow '.'", key, i)
+				return nil, util.FormatError(nil, "invalid key %q at pos %d: '[' cannot directly follow '.'", key, i)
 			}
 			if i > 0 && lastChar != ']' {
 				if path, err = appendKey(path, key[lastPos:i]); err != nil {
-					return nil, fmt.Errorf("invalid key %q at pos %d: %v", key, lastPos, err)
+					return nil, util.FormatError(err, "invalid key %q at pos %d", key, lastPos)
 				}
 			}
 			openBracket = true
@@ -129,13 +130,13 @@ func SplitPath(key string) (_ []Path, err error) {
 			lastChar = '['
 		case ']':
 			if !openBracket {
-				return nil, fmt.Errorf("invalid key %q at pos %d: ']' without matching '['", key, i)
+				return nil, util.FormatError(nil, "invalid key %q at pos %d: ']' without matching '['", key, i)
 			}
 			if lastPos == i {
-				return nil, fmt.Errorf("invalid key %q at pos %d: empty index", key, lastPos)
+				return nil, util.FormatError(nil, "invalid key %q at pos %d: empty index", key, lastPos)
 			}
 			if path, err = appendIndex(path, key[lastPos:i]); err != nil {
-				return nil, fmt.Errorf("invalid key %q at pos %d: %v", key, lastPos, err)
+				return nil, util.FormatError(err, "invalid key %q at pos %d", key, lastPos)
 			}
 			openBracket = false
 			lastPos = i + 1
@@ -143,21 +144,21 @@ func SplitPath(key string) (_ []Path, err error) {
 		default:
 			// if previous char was ']' and now we see other char that's not '.' or '[' it's invalid:
 			if lastChar == ']' {
-				return nil, fmt.Errorf("invalid key %q at pos %d: unexpected character %q after ']'", key, i, c)
+				return nil, util.FormatError(nil, "invalid key %q at pos %d: unexpected character %q after ']'", key, i, c)
 			}
 			lastChar = c
 		}
 	}
 
 	if openBracket {
-		return nil, fmt.Errorf("invalid key %q at pos %d: unclosed '['", key, lastPos-1)
+		return nil, util.FormatError(nil, "invalid key %q at pos %d: unclosed '['", key, lastPos-1)
 	}
 	if lastChar == '.' {
-		return nil, fmt.Errorf("invalid key %q at pos %d: ends with '.'", key, len(key)-1)
+		return nil, util.FormatError(nil, "invalid key %q at pos %d: ends with '.'", key, len(key)-1)
 	}
 	if lastChar != ']' {
 		if path, err = appendKey(path, key[lastPos:]); err != nil {
-			return nil, fmt.Errorf("invalid key %q at pos %d: %v", key, lastPos, err)
+			return nil, util.FormatError(err, "invalid key %q at pos %d", key, lastPos)
 		}
 	}
 
@@ -167,10 +168,10 @@ func SplitPath(key string) (_ []Path, err error) {
 // appendKey validates and appends a key segment.
 func appendKey(path []Path, s string) ([]Path, error) {
 	if s == "" {
-		return nil, fmt.Errorf("empty key segment")
+		return nil, util.FormatError(nil, "empty key segment")
 	}
 	if strings.ContainsRune(s, ' ') {
-		return nil, fmt.Errorf("key segment %q contains space", s)
+		return nil, util.FormatError(nil, "key segment %q contains space", s)
 	}
 	return append(path, Path{Type: PathTypeKey, Elem: s}), nil
 }
@@ -178,10 +179,10 @@ func appendKey(path []Path, s string) ([]Path, error) {
 // appendIndex validates and appends an index segment.
 func appendIndex(path []Path, s string) ([]Path, error) {
 	if s == "" {
-		return nil, fmt.Errorf("empty index")
+		return nil, util.FormatError(nil, "empty index")
 	}
 	if _, err := strconv.ParseUint(s, 10, 64); err != nil {
-		return nil, fmt.Errorf("index must be an unsigned integer (got %q)", s)
+		return nil, util.FormatError(nil, "index must be an unsigned integer (got %q)", s)
 	}
 	return append(path, Path{Type: PathTypeIndex, Elem: s}), nil
 }

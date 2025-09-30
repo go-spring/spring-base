@@ -57,62 +57,76 @@
 package barky
 
 import (
-	"cmp"
-	"errors"
-	"fmt"
-	"slices"
+	"maps"
+
+	"github.com/go-spring/spring-base/util"
 )
 
-// treeNode is an internal node used to represent the hierarchical
-// structure of keys in Storage. Each node may point to child nodes
-// depending on whether it's a map key or an array index.
+// treeNode represents a node in the hierarchical tree that models
+// the structure of keys in Storage. Each node corresponds to either
+// an object/map field or an array element, depending on its PathType.
+//
+// Internal invariant:
+//   - treeNode exists only to describe the structure (not to store values).
+//   - Leaf nodes are represented in Storage.data or Storage.empty instead
+//     of treeNode itself.
 type treeNode struct {
 	Type PathType
 	Data map[string]*treeNode
 }
 
-// ValueInfo stores metadata about a flattened value in Storage.
-// It includes both the string value and the file index that the value
-// originated from.
+// ValueInfo holds both the string value and the index of the file
+// from which the value originated. This enables tracking of data provenance.
 type ValueInfo struct {
 	File  int8
 	Value string
 }
 
-// Storage manages a collection of flattened key/value pairs
-// while preserving hierarchical structure for validation and queries.
-// It tracks both values and the files they come from, and prevents
-// structural conflicts when setting values.
+// Storage manages hierarchical key/value data with structural validation.
+// It provides:
+//
+//   - A hierarchical tree (root) for detecting structural conflicts.
+//   - A flat map (data) for quick value lookups.
+//   - An empty map (empty) for representing empty containers like "[]" or "{}".
+//   - A file map for mapping file names to numeric indexes, allowing traceability.
+//
+// Invariants:
+//   - `root` stores only the tree structure (no leaf values).
+//   - `data` stores leaf key-value pairs.
+//   - `empty` stores leaf paths that represent empty arrays/maps or nil values.
 type Storage struct {
-
-	// The root node of the hierarchical tree structure.
-	root *treeNode
-
-	// Maps flattened keys (e.g. "foo.bar[0]") to ValueInfo,
-	// storing both value and file index.
-	data map[string]ValueInfo
-
-	// Maps file names to their assigned integer indexes,
-	// allowing values to be traced back to their source file.
-	file map[string]int8
+	root  *treeNode
+	data  map[string]ValueInfo
+	empty map[string]ValueInfo
+	file  map[string]int8
 }
 
 // NewStorage creates a new Storage instance.
 func NewStorage() *Storage {
 	return &Storage{
-		data: make(map[string]ValueInfo),
-		file: make(map[string]int8),
+		data:  make(map[string]ValueInfo),
+		empty: make(map[string]ValueInfo),
+		file:  make(map[string]int8),
 	}
 }
 
-// RawData returns the internal map of flattened key → ValueInfo,
-// Warning: exposes internal state directly.
+// RawData exposes the internal flattened key → ValueInfo mapping,
+// combining both data and empty containers if any exist.
+//
+// WARNING: This method leaks internal state and should be used
+// with caution (e.g., for debugging or low-level access).
 func (s *Storage) RawData() map[string]ValueInfo {
+	if len(s.empty) > 0 {
+		m := make(map[string]ValueInfo)
+		maps.Copy(m, s.data)
+		maps.Copy(m, s.empty)
+		return m
+	}
 	return s.data
 }
 
-// Data returns a simplified map of flattened key → string value,
-// discarding file index information.
+// Data returns a simplified flattened key → string value mapping,
+// omitting file index information.
 func (s *Storage) Data() map[string]string {
 	m := make(map[string]string)
 	for k, v := range s.data {
@@ -121,10 +135,9 @@ func (s *Storage) Data() map[string]string {
 	return m
 }
 
-// AddFile registers a file name into the storage, assigning it
-// a unique int8 index if it has not been added before.
-// The index is assigned incrementally starting from 0.
-// Returns the index of the file.
+// AddFile registers a file name in the Storage and assigns it
+// a unique int8 index if not already registered.
+// Returns the index assigned to the given file.
 func (s *Storage) AddFile(file string) int8 {
 	idx, ok := s.file[file]
 	if !ok {
@@ -134,20 +147,28 @@ func (s *Storage) AddFile(file string) int8 {
 	return idx
 }
 
-// RawFile returns the internal mapping of file names to their assigned indexes.
-// Warning: exposes internal state directly.
+// RawFile exposes the internal file name → index mapping.
 func (s *Storage) RawFile() map[string]int8 {
 	return s.file
 }
 
-// Keys returns all flattened keys currently stored, sorted in lexicographic order.
+// Keys returns all flattened keys currently stored in Storage,
+// sorted lexicographically for consistent iteration.
 func (s *Storage) Keys() []string {
-	return OrderedMapKeys(s.data)
+	return util.OrderedMapKeys(s.data)
 }
 
-// SubKeys retrieves the immediate child keys under the given path.
-// For example, given "a.b", it returns the keys directly under "a.b".
-// Returns an error if the path is invalid or conflicts exist.
+// SubKeys returns the immediate child keys under the given hierarchical path.
+//
+// For example, if Storage contains keys:
+//
+//	a.b.c
+//	a.b.d
+//
+// then SubKeys("a.b") returns ["c", "d"].
+//
+// If the path points to a leaf value or structural conflict, an error is returned.
+// If the path does not exist, it returns nil.
 func (s *Storage) SubKeys(key string) (_ []string, err error) {
 	var path []Path
 	if key != "" {
@@ -160,15 +181,20 @@ func (s *Storage) SubKeys(key string) (_ []string, err error) {
 		return nil, nil
 	}
 
-	// `data` only stores leaf values, `root` only stores paths.
+	// If the path is stored as an empty container, it has no children.
+	if _, ok := s.empty[key]; ok {
+		return []string{}, nil
+	}
+
+	// If the path is a leaf value, it's a conflict for requesting sub-keys.
 	if _, ok := s.data[key]; ok {
-		return nil, fmt.Errorf("property conflict at path %s", key)
+		return nil, util.FormatError(nil, "property conflict at path %s", key)
 	}
 
 	n := s.root
 	for i, pathNode := range path {
 		if n == nil || pathNode.Type != n.Type {
-			return nil, fmt.Errorf("property conflict at path %s", JoinPath(path[:i+1]))
+			return nil, util.FormatError(nil, "property conflict at path %s", JoinPath(path[:i+1]))
 		}
 		v, ok := n.Data[pathNode.Elem]
 		if !ok {
@@ -178,19 +204,25 @@ func (s *Storage) SubKeys(key string) (_ []string, err error) {
 	}
 
 	if n == nil {
-		return nil, nil
+		return []string{}, nil
 	}
-	return OrderedMapKeys(n.Data), nil
+	return util.OrderedMapKeys(n.Data), nil
 }
 
-// Has checks whether a key (or nested structure) exists in the storage.
-// Returns false if the key is invalid or conflicts with existing structure.
+// Has checks whether a given key (or path) exists in the Storage.
+// Returns true if the key refers to either a stored value, an empty
+// container, or a valid intermediate node in the hierarchy.
 func (s *Storage) Has(key string) bool {
 	if key == "" || s.root == nil {
 		return false
 	}
 
-	// `data` only stores leaf values, `root` only stores paths.
+	// Check for empty containers.
+	if _, ok := s.empty[key]; ok {
+		return true
+	}
+
+	// Check for stored values.
 	if _, ok := s.data[key]; ok {
 		return true
 	}
@@ -214,23 +246,28 @@ func (s *Storage) Has(key string) bool {
 	return true
 }
 
-// Get retrieves the value associated with a key. If the key is not found
-// and a default value is provided, the default is returned instead.
-// If multiple default values are provided, only the first one is used.
+// Get retrieves the value associated with the given flattened key.
+// If the key is not found and a default value is provided, the default
+// is returned instead. Only the first default value is considered.
 func (s *Storage) Get(key string, def ...string) string {
-	v, ok := s.RawData()[key]
+	v, ok := s.data[key]
 	if !ok && len(def) > 0 {
 		return def[0]
 	}
 	return v.Value
 }
 
-// Set inserts or updates a key with the given value and file index.
-// It ensures that the key path is valid and does not conflict with
-// existing structure types. Returns an error if conflicts are detected.
+// Set inserts or updates a flattened key with the given value and
+// the index of the file it originated from.
+//
+// It validates the path to prevent structural conflicts:
+//   - Cannot store a value where a container node already exists.
+//   - Cannot change an array branch into a map branch or vice versa.
+//
+// Returns an error if a structural conflict is detected.
 func (s *Storage) Set(key string, val string, file int8) error {
 	if key == "" {
-		return errors.New("key is empty")
+		return util.FormatError(nil, "key is empty")
 	}
 
 	path, err := SplitPath(key)
@@ -238,7 +275,7 @@ func (s *Storage) Set(key string, val string, file int8) error {
 		return err
 	}
 
-	// Initialize root if empty
+	// Initialize root if it's the first insertion
 	if s.root == nil {
 		s.root = &treeNode{
 			Type: path[0].Type,
@@ -249,7 +286,7 @@ func (s *Storage) Set(key string, val string, file int8) error {
 	n := s.root
 	for i, pathNode := range path {
 		if n == nil || pathNode.Type != n.Type {
-			return fmt.Errorf("property conflict at path %s", JoinPath(path[:i+1]))
+			return util.FormatError(nil, "property conflict at path %s", JoinPath(path[:i+1]))
 		}
 		v, ok := n.Data[pathNode.Elem]
 		if !ok {
@@ -264,25 +301,15 @@ func (s *Storage) Set(key string, val string, file int8) error {
 		n = v
 	}
 	if n != nil {
-		return fmt.Errorf("property conflict at path %s", key)
+		return util.FormatError(nil, "property conflict at path %s", key)
 	}
 
-	// `data` only stores leaf values, `root` only stores paths.
+	// Store the value or empty container
 	switch val {
 	case "[]", "{}", "<nil>":
+		s.empty[key] = ValueInfo{file, val}
 	default:
 		s.data[key] = ValueInfo{file, val}
 	}
 	return nil
-}
-
-// OrderedMapKeys returns the sorted keys of a generic map with ordered keys.
-// It is a utility function used to provide deterministic ordering of map keys.
-func OrderedMapKeys[M ~map[K]V, K cmp.Ordered, V any](m M) []K {
-	r := make([]K, 0, len(m))
-	for k := range m {
-		r = append(r, k)
-	}
-	slices.Sort(r)
-	return r
 }

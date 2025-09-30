@@ -32,15 +32,15 @@ import (
 func TestSomething(t *testing.T) {
 	// 使用 assert - 断言失败时测试会继续执行
 	assert.That(t, "hello").Equal("hello")
-	assert.ThatNumber(t, 42).GreaterThan(40)
+	assert.Number(t, 42).GreaterThan(40)
 
 	// 使用 require - 断言失败时测试会立即停止
 	require.That(t, someValue).NotNil()
 
 	// 类型专用断言
-	assert.ThatString(t, "user@example.com").IsEmail()
-	assert.ThatNumber(t, 100).InRange(0, 200)
-	assert.ThatSlice(t, []int{1, 2, 3}).Contains(2)
+	assert.String(t, "user@example.com").IsEmail()
+	assert.Number(t, 100).InRange(0, 200)
+	assert.Slice(t, []int{1, 2, 3}).Contains(2)
 }
 ```
 
