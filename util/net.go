@@ -17,17 +17,27 @@
 package util
 
 import (
-	"cmp"
-	"slices"
+	"net"
+	"sync"
 )
 
-// OrderedMapKeys returns the sorted keys of a map whose key type is ordered.
-// This provides a deterministic order for iteration over maps.
-func OrderedMapKeys[M ~map[K]V, K cmp.Ordered, V any](m M) []K {
-	r := make([]K, 0, len(m))
-	for k := range m {
-		r = append(r, k)
-	}
-	slices.Sort(r)
-	return r
+var localIPv4Str = "0.0.0.0"
+var localIPv4Once = new(sync.Once)
+
+// LocalIPv4 retrieves the first non-loopback IPv4 address of the local machine.
+// The result is cached after the first call using sync.Once.
+func LocalIPv4() string {
+	localIPv4Once.Do(func() {
+		if ias, err := net.InterfaceAddrs(); err == nil {
+			for _, address := range ias {
+				if ipNet, ok := address.(*net.IPNet); ok && !ipNet.IP.IsLoopback() {
+					if ipNet.IP.To4() != nil {
+						localIPv4Str = ipNet.IP.String()
+						return
+					}
+				}
+			}
+		}
+	})
+	return localIPv4Str
 }

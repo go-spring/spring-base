@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package util
+package util_test
 
 import (
-	"cmp"
-	"slices"
+	"testing"
+
+	"github.com/go-spring/spring-base/testing/assert"
+	"github.com/go-spring/spring-base/util"
 )
 
-// OrderedMapKeys returns the sorted keys of a map whose key type is ordered.
-// This provides a deterministic order for iteration over maps.
-func OrderedMapKeys[M ~map[K]V, K cmp.Ordered, V any](m M) []K {
-	r := make([]K, 0, len(m))
-	for k := range m {
-		r = append(r, k)
-	}
-	slices.Sort(r)
-	return r
+func TestLocalIPv4(t *testing.T) {
+	assert.String(t, util.LocalIPv4()).Equal(util.LocalIPv4())
 }

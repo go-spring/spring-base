@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package util
+package pkg
 
 import (
-	"cmp"
-	"slices"
+	"fmt"
 )
 
-// OrderedMapKeys returns the sorted keys of a map whose key type is ordered.
-// This provides a deterministic order for iteration over maps.
-func OrderedMapKeys[M ~map[K]V, K cmp.Ordered, V any](m M) []K {
-	r := make([]K, 0, len(m))
-	for k := range m {
-		r = append(r, k)
-	}
-	slices.Sort(r)
-	return r
+// SamePkg golang allows packages with the same name under different paths.
+type SamePkg struct{}
+
+func (p *SamePkg) Package() {
+	fmt.Println("github.com/go-spring/spring-base/util/testdata/pkg/bar/pkg.SamePkg")
 }

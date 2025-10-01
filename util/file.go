@@ -17,17 +17,29 @@
 package util
 
 import (
-	"cmp"
-	"slices"
+	"errors"
+	"os"
 )
 
-// OrderedMapKeys returns the sorted keys of a map whose key type is ordered.
-// This provides a deterministic order for iteration over maps.
-func OrderedMapKeys[M ~map[K]V, K cmp.Ordered, V any](m M) []K {
-	r := make([]K, 0, len(m))
-	for k := range m {
-		r = append(r, k)
+// PathExists checks whether the specified file or directory exists.
+func PathExists(file string) (bool, error) {
+	_, err := os.Stat(file)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false, nil
+		}
+		return false, err
 	}
-	slices.Sort(r)
-	return r
+	return true, nil
+}
+
+// ReadDirNames reads all entry names in the given directory.
+func ReadDirNames(dirname string) ([]string, error) {
+	f, err := os.Open(dirname)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = f.Close() }()
+	names, err := f.Readdirnames(-1)
+	return names, err
 }

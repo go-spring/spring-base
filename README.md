@@ -5,7 +5,8 @@
    <img src="https://img.shields.io/github/go-mod/go-version/go-spring/spring-base" alt="go-version"/>
    <img src="https://img.shields.io/github/v/release/go-spring/spring-base?include_prereleases" alt="release"/>
 </div>
-<br/>
+
+[English](README.md) | [中文](README_CN.md)
 
 > The project has been officially released, welcome to use!
 

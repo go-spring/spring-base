@@ -17,17 +17,13 @@
 package util
 
 import (
-	"cmp"
-	"slices"
+	"crypto/md5"
+	"encoding/hex"
 )
 
-// OrderedMapKeys returns the sorted keys of a map whose key type is ordered.
-// This provides a deterministic order for iteration over maps.
-func OrderedMapKeys[M ~map[K]V, K cmp.Ordered, V any](m M) []K {
-	r := make([]K, 0, len(m))
-	for k := range m {
-		r = append(r, k)
-	}
-	slices.Sort(r)
-	return r
+// MD5 computes the MD5 checksum of the given string
+// and returns it as a lowercase hexadecimal string.
+func MD5(str string) string {
+	hash := md5.Sum([]byte(str))
+	return hex.EncodeToString(hash[:])
 }

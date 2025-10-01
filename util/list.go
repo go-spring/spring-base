@@ -17,17 +17,26 @@
 package util
 
 import (
-	"cmp"
-	"slices"
+	"container/list"
 )
 
-// OrderedMapKeys returns the sorted keys of a map whose key type is ordered.
-// This provides a deterministic order for iteration over maps.
-func OrderedMapKeys[M ~map[K]V, K cmp.Ordered, V any](m M) []K {
-	r := make([]K, 0, len(m))
-	for k := range m {
-		r = append(r, k)
+// ListOf creates a list of the given items.
+func ListOf[T any](a ...T) *list.List {
+	l := list.New()
+	for _, i := range a {
+		l.PushBack(i)
 	}
-	slices.Sort(r)
-	return r
+	return l
+}
+
+// AllOfList returns a slice of all items in the given list.
+func AllOfList[T any](l *list.List) []T {
+	if l == nil || l.Len() == 0 {
+		return nil
+	}
+	ret := make([]T, 0, l.Len())
+	for e := l.Front(); e != nil; e = e.Next() {
+		ret = append(ret, e.Value.(T))
+	}
+	return ret
 }

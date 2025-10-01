@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package util
+package testdata
 
-import (
-	"cmp"
-	"slices"
-)
+func FnNoArgs() {}
 
-// OrderedMapKeys returns the sorted keys of a map whose key type is ordered.
-// This provides a deterministic order for iteration over maps.
-func OrderedMapKeys[M ~map[K]V, K cmp.Ordered, V any](m M) []K {
-	r := make([]K, 0, len(m))
-	for k := range m {
-		r = append(r, k)
-	}
-	slices.Sort(r)
-	return r
-}
+func FnWithArgs(i int) {}
+
+type Receiver struct{}
+
+func (r Receiver) FnNoArgs() {}
+
+func (r Receiver) FnWithArgs(i int) {}
+
+func (r *Receiver) PtrFnNoArgs() {}
+
+func (r *Receiver) PtrFnWithArgs(i int) {}
+
+func (r *Receiver) String() string { return "" }

@@ -27,7 +27,8 @@ var ErrForbiddenMethod = errors.New("forbidden method")
 // ErrUnimplementedMethod throws this error when calling an unimplemented method.
 var ErrUnimplementedMethod = errors.New("unimplemented method")
 
-// FormatError formats an error message and wraps it around the given error.
+// FormatError formats an error message and returns a new error.
+// If the provided error is non-nil, it appends the formatted message before it.
 func FormatError(err error, format string, args ...any) error {
 	if err == nil {
 		return fmt.Errorf(format, args...)
@@ -36,7 +37,8 @@ func FormatError(err error, format string, args ...any) error {
 	return fmt.Errorf("%s: %w", msg, err)
 }
 
-// WrapError wraps an existing error, creating a new error with hierarchical relationships.
+// WrapError wraps an existing error with additional context,
+// showing a hierarchical relationship between the new message and the original error.
 func WrapError(err error, format string, args ...any) error {
 	if err == nil {
 		return fmt.Errorf(format, args...)
