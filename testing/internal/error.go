@@ -85,6 +85,23 @@ expected: %v`, a.v, target)
 	return a
 }
 
+// String reports a test failure if the error message is not equal to the expected message.
+func (a *ErrorAssertion) String(expect string, msg ...string) *ErrorAssertion {
+	a.t.Helper()
+	if a.v == nil {
+		str := `expected non-nil error, but got nil`
+		Fail(a.t, a.fatalOnFailure, str, msg...)
+		return a
+	}
+	if a.v.Error() != expect {
+		str := fmt.Sprintf(`expected strings to be equal, but they are not
+  actual: %q
+expected: %q`, a.v, expect)
+		Fail(a.t, a.fatalOnFailure, str, msg...)
+	}
+	return a
+}
+
 // Matches reports a test failure if the error string does not match the given expression.
 // It expects a non-nil error and uses the provided expression (typically a regex)
 // to validate the error message content. Optional custom failure messages can be provided.

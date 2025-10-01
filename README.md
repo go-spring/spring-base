@@ -4,10 +4,8 @@
    <img src="https://img.shields.io/github/license/go-spring/spring-base" alt="license"/>
    <img src="https://img.shields.io/github/go-mod/go-version/go-spring/spring-base" alt="go-version"/>
    <img src="https://img.shields.io/github/v/release/go-spring/spring-base?include_prereleases" alt="release"/>
-   <a href="https://codecov.io/gh/go-spring/spring-base" > 
-      <img src="https://codecov.io/gh/go-spring/spring-base/graph/badge.svg?token=SX7CV1T0O8" alt="test-coverage"/>
-   </a>
 </div>
+<br/>
 
 > The project has been officially released, welcome to use!
 

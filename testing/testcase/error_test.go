@@ -193,6 +193,57 @@ expected: this is an error
  message: "expected errors to be different"`)
 }
 
+func TestError_String(t *testing.T) {
+	m := new(internal.MockTestingT)
+	err := errors.New("this is an error")
+
+	// Test successful case - error is the same as target
+	m.Reset()
+	assert.Error(m, err).String(err.Error())
+	assert.String(t, m.String()).Equal("")
+
+	// Test failed case - different errors
+	m.Reset()
+	assert.Error(m, err).String("another error")
+	assert.String(t, m.String()).Equal(`error# Assertion failed: expected strings to be equal, but they are not
+  actual: "this is an error"
+expected: "another error"`)
+
+	// Test failed case with Require - should fatal
+	m.Reset()
+	require.Error(m, err).String("another error", "index is 0")
+	assert.String(t, m.String()).Equal(`fatal# Assertion failed: expected strings to be equal, but they are not
+  actual: "this is an error"
+expected: "another error"
+ message: "index is 0"`)
+
+	// Test with wrapped error - should not match the root error (because we're checking Is in wrong direction)
+	m.Reset()
+	rootErr := errors.New("root error")
+	wrappedErr := fmt.Errorf("level 1: %w", fmt.Errorf("level 2: %w", rootErr))
+	assert.Error(m, wrappedErr).String("level 1: level 2: root error")
+	assert.String(t, m.String()).Equal("")
+
+	// Test with nil error - should fail
+	m.Reset()
+	assert.Error(m, nil).String(err.Error())
+	assert.String(t, m.String()).Equal(`error# Assertion failed: expected non-nil error, but got nil`)
+
+	// Test with custom error type
+	m.Reset()
+	customErr := &CustomError{msg: "custom error"}
+	assert.Error(m, customErr).String(customErr.Error())
+	assert.String(t, m.String()).Equal("")
+
+	// Test with custom message on failure
+	m.Reset()
+	assert.Error(m, errors.New("some error")).String("other error", "expected errors to match")
+	assert.String(t, m.String()).Equal(`error# Assertion failed: expected strings to be equal, but they are not
+  actual: "some error"
+expected: "other error"
+ message: "expected errors to match"`)
+}
+
 func TestError_Matches(t *testing.T) {
 	m := new(internal.MockTestingT)
 
